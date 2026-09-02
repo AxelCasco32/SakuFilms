@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<title>SAKU FILMS — Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root { --bg:#F0E1DA; --card:#fff; --text:#69483F; --accent:#B8756B; --border:#DDB4AB; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Manrope', Arial, sans-serif; background: var(--bg); color: var(--text); margin:0; padding:24px; }
+  h1 { font-family: Georgia, serif; font-weight: 400; }
+  .card { background: var(--card); border-radius: 10px; padding: 20px; margin-bottom: 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); max-width: 900px; }
+  input, select, textarea { display:block; width:100%; padding:10px; margin-bottom:12px; border:1px solid var(--border); border-radius:6px; font-family:inherit; }
+  label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); }
+  button { background: var(--text); color: #fff; border:none; padding:10px 20px; border-radius:6px; cursor:pointer; font-family:inherit; }
+  button:hover { background: var(--accent); }
+  button.danger { background: #b33; }
+  table { width:100%; border-collapse: collapse; max-width: 900px; }
+  td, th { text-align:left; padding:8px; border-bottom:1px solid var(--border); font-size:0.85rem; }
+  img.thumb { width:60px; height:60px; object-fit:cover; border-radius:4px; cursor:pointer; transition: opacity .2s; }
+  img.thumb:hover { opacity: 0.75; }
+  .thumb-wrap { position:relative; display:inline-block; }
+  .play-badge { position:absolute; bottom:2px; right:2px; background:rgba(0,0,0,0.65); color:#fff; font-size:9px; padding:1px 4px; border-radius:3px; pointer-events:none; }
+  #app { display:none; }
+  .row { display:flex; gap:12px; flex-wrap: wrap; }
+  .row > div { flex:1; min-width:160px; }
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:1000; align-items:center; justify-content:center; }
+  .modal-overlay.open { display:flex; }
+  .modal-box { background:#000; width:min(880px, 92vw); aspect-ratio:16/9; position:relative; }
+  .modal-box iframe { width:100%; height:100%; border:0; }
+  .modal-close { position:absolute; top:-36px; right:0; background:transparent; color:#fff; font-size:1.4rem; padding:4px 10px; }
+</style>
+</head>
+<body>
+
+<div id="login" class="card" style="max-width:360px;">
+  <h1>SAKU · Admin</h1>
+  <label>Usuario</label>
+  <input id="loginUser" value="admin" />
+  <label>Contraseña</label>
+  <input id="loginPass" type="password" />
+  <button onclick="login()">Ingresar</button>
+  <p id="loginError" style="color:#b33;"></p>
+</div>
+
+<div id="app">
+  <h1>SAKU FILMS — Panel de administración</h1>
+  <button onclick="logout()" style="margin-bottom:20px;">Cerrar sesión</button>
+
+  <div class="card">
+    <h2 id="formTitle">Nuevo film</h2>
+    <input type="hidden" id="filmId" />
+    <div class="row">
+      <div><label>Pareja / Proyecto</label><input id="couple" placeholder="Lucía & Mateo" /></div>
+      <div><label>Ubicación</label><input id="location" placeholder="Buenos Aires" /></div>
+    </div>
+    <div class="row">
+      <div>
+        <label>Categoría</label>
+        <select id="category"></select>
+      </div>
+      <div><label>Año</label><input id="year" placeholder="2024" /></div>
+      <div><label>Posición (orden en el carousel)</label><input id="position" type="number" value="0" /></div>
+    </div>
+    <label>Imagen (thumbnail)</label>
+    <input id="image" type="file" accept="image/*" />
+    <p style="font-size:0.8rem; opacity:0.7; margin-top:-6px;">Si no subís una imagen nueva al editar, se mantiene la actual.</p>
+    <label>Link de YouTube del film</label>
+    <input id="videoUrl" placeholder="https://www.youtube.com/watch?v=..." />
+    <p style="font-size:0.8rem; opacity:0.7; margin-top:-6px;">Este proyecto se agrega automáticamente al carousel del home Y a la sección Films, categorizado.</p>
+    <button onclick="saveFilm()">Guardar</button>
+    <button onclick="resetForm()" style="background:#999;">Cancelar edición</button>
+  </div>
+
+  <div class="card">
+    <h2>Films</h2>
+    <p style="font-size:0.8rem; opacity:0.7;">Hacé click en la imagen para ver el video cargado.</p>
+    <table id="filmsTable">
+      <thead><tr><th>Img</th><th>Pareja</th><th>Categoría</th><th>Ubicación</th><th>Año</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Consultas de contacto</h2>
+    <table id="contactsTable">
+      <thead><tr><th>Nombre</th><th>Email</th><th>WhatsApp</th><th>Fecha boda</th><th>Cobertura</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal-overlay" id="videoModal" onclick="if(event.target===this) closeVideo()">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeVideo()">✕</button>
+    <div id="videoModalContent"></div>
+  </div>
+</div>
+
+<script>
+const API = '/api'
+let token = localStorage.getItem('saku_token') || ''
+let categories = []
+
+function headers(json = true) {
+  const h = { Authorization: 'Bearer ' + token }
+  if (json) h['Content-Type'] = 'application/json'
+  return h
+}
+
+// Convierte cualquier link de YouTube (watch, youtu.be, shorts) en un embed URL
+function toYoutubeEmbed(url) {
+  if (!url) return null
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=)([^&]+)/,
+    /(?:youtu\.be\/)([^?&]+)/,
+    /(?:youtube\.com\/shorts\/)([^?&]+)/,
+    /(?:youtube\.com\/embed\/)([^?&]+)/,
+  ]
+  for (const p of patterns) {
+    const m = url.match(p)
+    if (m) return `https://www.youtube.com/embed/${m[1]}`
+  }
+  return null
+}
+
+function openVideo(url) {
+  const embed = toYoutubeEmbed(url)
+  const content = document.getElementById('videoModalContent')
+  if (!embed) {
+    content.innerHTML = '<p style="color:#fff; padding:20px;">Este film todavía no tiene un link de YouTube válido cargado.</p>'
+  } else {
+    content.innerHTML = `<iframe src="${embed}?autoplay=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`
+  }
+  document.getElementById('videoModal').classList.add('open')
+}
+
+function closeVideo() {
+  document.getElementById('videoModal').classList.remove('open')
+  document.getElementById('videoModalContent').innerHTML = ''
+}
+
+async function loadCategories() {
+  const res = await fetch(API + '/films/categories')
+  categories = await res.json()
+  const select = document.getElementById('category')
+  select.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('')
+}
+
+async function login() {
+  const user = document.getElementById('loginUser').value
+  const password = document.getElementById('loginPass').value
+  try {
+    const res = await fetch(API + '/auth/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user, password }),
+    })
+    if (!res.ok) {
+      document.getElementById('loginError').textContent = 'Usuario o contraseña incorrectos'
+      return
+    }
+    const data = await res.json()
+    token = data.token
+    localStorage.setItem('saku_token', token)
+    showApp()
+  } catch {
+    document.getElementById('loginError').textContent = 'No se pudo conectar con el backend'
+  }
+}
+
+function logout() {
+  localStorage.removeItem('saku_token')
+  token = ''
+  document.getElementById('app').style.display = 'none'
+  document.getElementById('login').style.display = 'block'
+}
+
+async function showApp() {
+  document.getElementById('login').style.display = 'none'
+  document.getElementById('app').style.display = 'block'
+  await loadCategories()
+  loadFilms()
+  loadContacts()
+}
+
+async function loadFilms() {
+  const res = await fetch(API + '/films')
+  const films = await res.json()
+  const tbody = document.querySelector('#filmsTable tbody')
+  tbody.innerHTML = films.map(f => `
+    <tr>
+      <td>
+        <div class="thumb-wrap" onclick='openVideo(${JSON.stringify(f.videoUrl || "")})'>
+          <img class="thumb" src="${f.img}" />
+          ${f.videoUrl ? '<span class="play-badge">▶</span>' : ''}
+        </div>
+      </td>
+      <td>${f.couple}</td>
+      <td>${f.category}</td>
+      <td>${f.location}</td>
+      <td>${f.year}</td>
+      <td>
+        <button onclick='editFilm(${JSON.stringify(f)})'>Editar</button>
+        <button class="danger" onclick="deleteFilm('${f._id}')">Borrar</button>
+      </td>
+    </tr>`).join('')
+}
+
+function editFilm(f) {
+  document.getElementById('formTitle').textContent = 'Editar film'
+  document.getElementById('filmId').value = f._id
+  document.getElementById('couple').value = f.couple
+  document.getElementById('location').value = f.location
+  document.getElementById('category').value = f.category
+  document.getElementById('year').value = f.year
+  document.getElementById('position').value = f.position
+  document.getElementById('videoUrl').value = f.videoUrl || ''
+  window.scrollTo(0, 0)
+}
+
+function resetForm() {
+  document.getElementById('formTitle').textContent = 'Nuevo film'
+  document.getElementById('filmId').value = ''
+  ;['couple','location','year','videoUrl'].forEach(id => document.getElementById(id).value = '')
+  document.getElementById('position').value = 0
+  document.getElementById('image').value = ''
+  document.getElementById('category').selectedIndex = 0
+}
+
+async function saveFilm() {
+  const id = document.getElementById('filmId').value
+  const fd = new FormData()
+  fd.append('couple', document.getElementById('couple').value)
+  fd.append('location', document.getElementById('location').value)
+  fd.append('category', document.getElementById('category').value)
+  fd.append('year', document.getElementById('year').value)
+  fd.append('position', document.getElementById('position').value)
+  fd.append('videoUrl', document.getElementById('videoUrl').value)
+  const file = document.getElementById('image').files[0]
+  if (file) fd.append('image', file)
+
+  const url = id ? `${API}/films/${id}` : `${API}/films`
+  const method = id ? 'PUT' : 'POST'
+  const res = await fetch(url, { method, headers: { Authorization: 'Bearer ' + token }, body: fd })
+  if (!res.ok) { alert('Error al guardar'); return }
+  resetForm()
+  loadFilms()
+}
+
+async function deleteFilm(id) {
+  if (!confirm('¿Borrar este film?')) return
+  await fetch(`${API}/films/${id}`, { method: 'DELETE', headers: headers(false) })
+  loadFilms()
+}
+
+async function loadContacts() {
+  const res = await fetch(API + '/contact', { headers: headers(false) })
+  if (!res.ok) return
+  const contacts = await res.json()
+  const tbody = document.querySelector('#contactsTable tbody')
+  tbody.innerHTML = contacts.map(c => `
+    <tr>
+      <td>${c.nombre} ${c.pareja ? '& ' + c.pareja : ''}</td>
+      <td>${c.email}</td>
+      <td>${c.whatsapp || ''}</td>
+      <td>${c.fecha || ''}</td>
+      <td>${c.cobertura || ''}</td>
+      <td><button class="danger" onclick="deleteContact('${c._id}')">Borrar</button></td>
+    </tr>`).join('')
+}
+
+async function deleteContact(id) {
+  if (!confirm('¿Borrar esta consulta?')) return
+  await fetch(`${API}/contact/${id}`, { method: 'DELETE', headers: headers(false) })
+  loadContacts()
+}
+
+if (token) showApp()
+</script>
+</body>
+</html>
