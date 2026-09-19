@@ -13,18 +13,27 @@ function Petal({ color, size }: { color: string; size: number }) {
 
 export default function SakuraPetals() {
   const petals = useMemo(() =>
-    Array.from({ length: 20 }, (_, i) => ({
-      id: i,
-      left: `${Math.random() * 100}%`,
-      delay: `${Math.random() * 16}s`,
-      duration: `${11 + Math.random() * 14}s`,
-      size: 7 + Math.floor(Math.random() * 9),
-      dx: `${(Math.random() - 0.5) * 140}px`,
-      r0: `${(Math.random() - 0.5) * 80}deg`,
-      r1: `${(Math.random() > 0.5 ? 1 : -1) * (300 + Math.random() * 300)}deg`,
-      po: `${0.35 + Math.random() * 0.4}`,
-      color: COLORS[Math.floor(Math.random() * COLORS.length)],
-    }))
+    Array.from({ length: 20 }, (_, i) => {
+      const duration = 11 + Math.random() * 14
+      // Delay NEGATIVO: hace que el navegador arranque la animación como si ya
+      // llevara corriendo un tiempo random. Así, en el primer frame, los pétalos
+      // ya están repartidos en distintos puntos de su caída (no todos arriba
+      // esperando su turno) — se evita el "amontonamiento" al cargar la página.
+      const delay = -(Math.random() * duration)
+
+      return {
+        id: i,
+        left: `${Math.random() * 100}%`,
+        delay: `${delay}s`,
+        duration: `${duration}s`,
+        size: 7 + Math.floor(Math.random() * 9),
+        dx: `${(Math.random() - 0.5) * 140}px`,
+        r0: `${(Math.random() - 0.5) * 80}deg`,
+        r1: `${(Math.random() > 0.5 ? 1 : -1) * (300 + Math.random() * 300)}deg`,
+        po: `${0.35 + Math.random() * 0.4}`,
+        color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      }
+    })
   , [])
 
   return (
