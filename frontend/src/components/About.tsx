@@ -93,7 +93,7 @@ export default function About() {
               marginBottom: '28px',
             }}
           >
-            Dos miradas.<br />Una historia.
+            Lo efímero<br />se vuelve eterno.
           </h2>
 
           <p

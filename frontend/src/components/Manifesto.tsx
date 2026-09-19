@@ -34,14 +34,14 @@ export default function Manifesto() {
             style={{
               fontFamily: "'Cormorant Garamond', serif",
               fontWeight: 400,
-              fontSize: 'clamp(2rem, 5vw, 3.8rem)',
+              fontSize: 'clamp(1.7rem, 5vw, 3.3rem)',
               color: '#69483F',
               lineHeight: 1.22,
               marginBottom: 'clamp(40px, 6vw, 72px)',
               maxWidth: '700px',
             }}
           >
-            Creemos en los momentos<br />que no se repiten.
+            Hay momentos que solo sucendecn una vez<br />Y merecen durar para siempre
           </h2>
         </div>
 
@@ -57,9 +57,9 @@ export default function Manifesto() {
               opacity: 0.88,
             }}
           >
-            En una mirada que dura un segundo.<br />
-            En una voz que reconocemos con los ojos cerrados.<br />
-            En un abrazo que queremos volver a sentir.
+            Acompañamos a parejas que buscan algo más que registrar su boda.<br />
+            Capturamos aquello que hace única a cada historia <br /> 
+            para volver a ese instante, una y otra vez. 
           </p>
         </div>
 

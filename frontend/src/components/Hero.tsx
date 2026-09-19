@@ -79,7 +79,7 @@ export default function Hero() {
           style={{
             fontFamily: "'Cormorant Garamond', serif",
             fontWeight: 300,
-            fontSize: 'clamp(2.2rem, 5vw, 4.4rem)',
+            fontSize: 'clamp(1.2rem, 5vw, 2.7rem)',
             lineHeight: 1.18,
             color: '#fff',
             maxWidth: '720px',
@@ -87,7 +87,7 @@ export default function Hero() {
             animation: 'heroItem 1.1s cubic-bezier(0.22,1,0.36,1) 0.7s both',
           }}
         >
-          Historias reales.<br />Emociones eternas.
+          Cada instante es irrepetible.<br />Cada historia, única.
         </h1>
 
         {/* Claim */}
@@ -103,7 +103,7 @@ export default function Hero() {
             animation: 'heroItem 1.1s cubic-bezier(0.22,1,0.36,1) 1s both',
           }}
         >
-          Dos miradas. Una historia.
+          Convertimos momentos irrepetibles en historias <br /> a las que siempre podés volver
         </p>
 
         {/* CTA */}
