@@ -7,22 +7,6 @@ function HorizontalRule({ opacity = 0.35 }: { opacity?: number }) {
   )
 }
 
-function CornerFrame() {
-  const corner = (
-    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-      <path d="M1 22 L1 1 L22 1" stroke="white" strokeWidth="0.7" opacity="0.4" />
-    </svg>
-  )
-  return (
-    <>
-      <span style={{ position: 'absolute', top: 0, left: 0 }}>{corner}</span>
-      <span style={{ position: 'absolute', top: 0, right: 0, transform: 'scaleX(-1)' }}>{corner}</span>
-      <span style={{ position: 'absolute', bottom: 0, left: 0, transform: 'scaleY(-1)' }}>{corner}</span>
-      <span style={{ position: 'absolute', bottom: 0, right: 0, transform: 'scale(-1,-1)' }}>{corner}</span>
-    </>
-  )
-}
-
 export default function Hero() {
   return (
     <section
@@ -88,8 +72,6 @@ export default function Hero() {
             animation: 'heroItem 1.2s cubic-bezier(0.22,1,0.36,1) 0.1s both',
           }}
         >
-          <CornerFrame />
-
           <div
             style={{
               fontFamily: "'Cocosharp', 'Manrope', sans-serif",
