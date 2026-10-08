@@ -195,7 +195,7 @@ export default function About() {
 
         {/* Fondo: PNG transparente que ocupa gran parte del bloque */}
         <img
-          src="/diseño.png"
+          src="/disenio.png"
           alt="Ilustración acuarela de cerezo sakura floreciente sobre roca"
           className="absolute left-0 bottom-0 h-full w-full md:w-[50%] object-cover opacity-25 md:opacity-100 pointer-events-none select-none"
           style={{
@@ -360,7 +360,7 @@ export default function About() {
 
           <div className="relative aspect-[4/5] overflow-hidden bg-petal w-[80%] ml-auto">
             <img
-              src="/diseño_2.jpg"
+              src="/disenio_2.jpg"
               alt="Erica y Matías, fundadores de SAKU Films"
               className="w-full h-full object-cover"
             />
