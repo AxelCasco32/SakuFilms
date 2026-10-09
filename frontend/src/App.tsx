@@ -13,6 +13,7 @@ import Contact from './components/Contact'
 import CtaFinal from './components/CtaFinal'
 import Footer from './components/Footer'
 import CtaIntermediate from './components/CtaIntermediate'
+import AboutSaku from './components/AboutSaku'
 
 export default function App() {
   const [ready, setReady] = useState(false)
@@ -32,6 +33,7 @@ export default function App() {
         <main>
           <Hero />
           <Manifesto />
+          <AboutSaku />   {/* ← nuevo: presenta la marca antes de mostrar el trabajo */}
           <FilmsCarousel />
           <About />
           <Films />
