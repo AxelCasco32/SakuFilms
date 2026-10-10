@@ -2,12 +2,12 @@ import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react
 
 // ── Carousel infinito ────────────────────────────────────────────────────────
 const carouselImages = [
-  { url: 'https://images.unsplash.com/photo-1530789253388-582c481c54b0?w=560&h=740&fit=crop&auto=format', alt: 'Pareja fotografiando globos en Capadocia' },
-  { url: 'https://images.unsplash.com/photo-1781945910800-52a0030b5637?w=560&h=740&fit=crop&auto=format', alt: 'Fotógrafo capturando a mujer en campo de flores' },
-  { url: 'https://images.unsplash.com/photo-1610112839947-5664d10bab30?w=560&h=740&fit=crop&auto=format', alt: 'Pareja sentada sobre rocas' },
-  { url: 'https://images.unsplash.com/photo-1735052712464-9d24b69be5f5?w=560&h=740&fit=crop&auto=format', alt: 'Novios en camino entre árboles' },
-  { url: 'https://images.unsplash.com/flagged/photo-1575390130069-b4b76d648af7?w=560&h=740&fit=crop&auto=format', alt: 'Videógrafo filmando a pareja' },
-  { url: 'https://images.unsplash.com/photo-1606217239582-d9f72323bcd7?w=560&h=740&fit=crop&auto=format', alt: 'Novios en la ciudad' },
+  { url: 'https://res.cloudinary.com/ex91suxd/image/upload/v1791647172/Vietnam_3.jpg' },
+  { url: 'https://res.cloudinary.com/ex91suxd/image/upload/v1791647171/SAKURA_1.jpg' },
+  { url: 'https://res.cloudinary.com/ex91suxd/image/upload/v1791647171/Vietnam_2.jpg' },
+  { url: 'https://res.cloudinary.com/ex91suxd/image/upload/v1791647170/Laos.jpg', alt: 'Novios en camino entre árboles' },
+  { url: 'https://res.cloudinary.com/ex91suxd/image/upload/v1791647170/Japon_12.jpg', alt: 'Videógrafo filmando a pareja' },
+  { url: 'https://res.cloudinary.com/ex91suxd/image/upload/v1791647170/Japon_14.jpg', alt: 'Novios en la ciudad' },
 ]
 
 const N = carouselImages.length
