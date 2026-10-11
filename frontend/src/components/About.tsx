@@ -1,386 +1,426 @@
-import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
+import { useEffect, useRef } from "react";
+import "./About.css";
 
-// ── Carousel infinito ────────────────────────────────────────────────────────
-const carouselImages = [
-  { url: 'https://res.cloudinary.com/ex91suxd/image/upload/v1791647172/Vietnam_3.jpg' },
-  { url: 'https://res.cloudinary.com/ex91suxd/image/upload/v1791647171/SAKURA_1.jpg' },
-  { url: 'https://res.cloudinary.com/ex91suxd/image/upload/v1791647171/Vietnam_2.jpg' },
-  { url: 'https://res.cloudinary.com/ex91suxd/image/upload/v1791647170/Laos.jpg', alt: 'Novios en camino entre árboles' },
-  { url: 'https://res.cloudinary.com/ex91suxd/image/upload/v1791647170/Japon_12.jpg', alt: 'Videógrafo filmando a pareja' },
-  { url: 'https://res.cloudinary.com/ex91suxd/image/upload/v1791647170/Japon_14.jpg', alt: 'Novios en la ciudad' },
-]
+const disenio = "/disenio.png";
+const disenio2 = "/disenio_2.jpg";
 
-const N = carouselImages.length
-const EXTENDED = [...carouselImages, ...carouselImages, ...carouselImages]
+const carouselUrls = [
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791647172/Vietnam_3.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791647171/Vietnam_2.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791647171/SAKURA_1.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791647171/SAKURA_2.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791647171/Tailandia.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791647170/Laos.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791647170/Japon_14.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791647170/Japon_12.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791647169/Irlanda_3.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791647169/Japon_15.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791647169/indonesia_4.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791647169/Japon_1.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791647169/Irlanda_2.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791647169/Japon_9.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791647168/indonesia_2.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791647168/Irlanda_1.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791647168/indonesia_1.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791647167/Bulgaria.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791647167/Grecia.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791647166/Camboya_1.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791646624/Japon_7.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791646620/China_3.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791646616/Japon_3.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791646616/Japon_6.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791646615/indonesia_3.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791646615/Japon_2.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791646614/Japon_5.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791646613/Colombia_1.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791646612/Australia.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791646610/Japon_11.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791646609/China_1.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791646609/Camboya_2.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791646607/Tailandia_2.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791646604/Londres_1.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791646601/Londres_2.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791646595/China_4.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791646594/Vietnam_1.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791646593/Japon_13.jpg",
+  "https://res.cloudinary.com/ex91suxd/image/upload/v1791646593/Colombia_2.jpg",
+];
 
-function InfiniteCarousel() {
-  const [rawIdx, setRawIdx] = useState(N)
-  const [animated, setAnimated] = useState(true)
-  const [cardStep, setCardStep] = useState(286)
-  const [hinted, setHinted] = useState(false)
+// Cloudinary: formato y calidad automáticos + ancho máximo para que carguen livianas
+const optimize = (url: string) =>
+  url.replace("/upload/", "/upload/f_auto,q_auto,w_800,c_limit/");
 
-  const firstCardRef = useRef<HTMLDivElement>(null)
-  const autoRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const pausedRef = useRef(false)
-  const touchStartX = useRef(0)
-  const touchDeltaX = useRef(0)
+// "Japon_14.jpg" -> "Japon"
+const altFromUrl = (url: string) => {
+  const file = url.split("/").pop() ?? "";
+  const name = file.replace(/\.[a-z]+$/i, "").replace(/_\d+$/, "");
+  return `Detrás de cámara: ${name}`;
+};
 
-  useLayoutEffect(() => {
-    const measure = () => {
-      if (firstCardRef.current) setCardStep(firstCardRef.current.offsetWidth + 16)
-    }
-    measure()
-    window.addEventListener('resize', measure)
-    return () => window.removeEventListener('resize', measure)
-  }, [])
+const carouselPhotos = carouselUrls.map((url) => ({
+  src: optimize(url),
+  alt: altFromUrl(url),
+}));
 
-  const goNext = useCallback(() => setRawIdx((i) => i + 1), [])
-  const goPrev = useCallback(() => setRawIdx((i) => i - 1), [])
-
-  const handleTransitionEnd = () => {
-    if (rawIdx >= N * 2) { setAnimated(false); setRawIdx(N) }
-    else if (rawIdx < N) { setAnimated(false); setRawIdx(N * 2 - 1) }
-  }
+function useVisible<T extends HTMLElement>(threshold: number) {
+  const ref = useRef<T>(null);
 
   useEffect(() => {
-    if (!animated) {
-      const raf = requestAnimationFrame(() => requestAnimationFrame(() => setAnimated(true)))
-      return () => cancelAnimationFrame(raf)
-    }
-  }, [animated])
+    const node = ref.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          node.classList.add("is-visible");
+          observer.disconnect();
+        }
+      },
+      { threshold },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [threshold]);
 
-  useEffect(() => {
-    autoRef.current = setInterval(() => { if (!pausedRef.current) goNext() }, 3800)
-    return () => { if (autoRef.current) clearInterval(autoRef.current) }
-  }, [goNext])
-
-  const pauseAuto = () => { pausedRef.current = true }
-  const resumeAuto = () => { pausedRef.current = false }
-
-  const onTouchStart = (e: React.TouchEvent) => {
-    pauseAuto()
-    setHinted(true)
-    touchStartX.current = e.touches[0].clientX
-    touchDeltaX.current = 0
-  }
-  const onTouchMove = (e: React.TouchEvent) => {
-    touchDeltaX.current = e.touches[0].clientX - touchStartX.current
-  }
-  const onTouchEnd = () => {
-    if (touchDeltaX.current < -40) goNext()
-    else if (touchDeltaX.current > 40) goPrev()
-    touchDeltaX.current = 0
-    resumeAuto()
-  }
-
-  const translate = -(rawIdx * cardStep)
-  const dotIdx = ((rawIdx % N) + N) % N
-
-  return (
-    <div onMouseEnter={pauseAuto} onMouseLeave={resumeAuto}>
-      <div className="flex items-end justify-between mb-6">
-        <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-blush font-medium">
-          Nuestra Historia
-        </p>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={goPrev}
-            aria-label="Anterior"
-            className="w-8 h-8 rounded-full border flex items-center justify-center transition-colors duration-200 hover:bg-petal"
-            style={{ borderColor: 'rgba(184,117,107,0.4)', color: '#4A2E27', cursor: 'pointer' }}
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M10 3L5 8L10 13" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-          <button
-            onClick={goNext}
-            aria-label="Siguiente"
-            className="w-8 h-8 rounded-full border flex items-center justify-center transition-colors duration-200 hover:bg-petal"
-            style={{ borderColor: 'rgba(184,117,107,0.4)', color: '#4A2E27', cursor: 'pointer' }}
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <div className="overflow-hidden" style={{ cursor: 'grab' }}>
-        <div
-          style={{
-            display: 'flex',
-            gap: '16px',
-            transform: `translateX(${translate}px)`,
-            transition: animated ? 'transform 0.72s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
-            willChange: 'transform',
-          }}
-          onTransitionEnd={handleTransitionEnd}
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
-        >
-          {EXTENDED.map((img, i) => {
-            const realI = i % N
-            const isActive = realI === dotIdx && Math.abs(i - rawIdx) < N
-            return (
-              <div
-                key={i}
-                ref={i === 0 ? firstCardRef : undefined}
-                style={{
-                  flexShrink: 0,
-                  width: 'clamp(170px, 24vw, 272px)',
-                  aspectRatio: '3/4',
-                  overflow: 'hidden',
-                  backgroundColor: '#EDD9D3',
-                  opacity: isActive ? 1 : 0.68,
-                  transform: isActive ? 'scale(1)' : 'scale(0.965)',
-                  transition: 'opacity 0.5s ease, transform 0.5s ease',
-                }}
-              >
-                <img
-                  src={img.url}
-                  alt={img.alt}
-                  draggable={false}
-                  className="w-full h-full object-cover"
-                  style={{ transition: 'transform 0.7s ease', userSelect: 'none' }}
-                />
-              </div>
-            )
-          })}
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between mt-5">
-        <div className="flex items-center gap-[6px]">
-          {carouselImages.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setRawIdx(N + i)}
-              aria-label={`Imagen ${i + 1}`}
-              style={{
-                width: dotIdx === i ? '22px' : '6px',
-                height: '5px',
-                borderRadius: '3px',
-                background: dotIdx === i ? '#B8756B' : 'rgba(184,117,107,0.28)',
-                border: 'none',
-                cursor: 'pointer',
-                padding: 0,
-                transition: 'width 0.35s ease, background 0.35s ease',
-              }}
-            />
-          ))}
-        </div>
-
-        <span
-          className="md:hidden font-sans text-[10px] tracking-[0.18em] uppercase text-blush flex items-center gap-1.5"
-          style={{ opacity: hinted ? 0 : 0.6, transition: 'opacity 0.6s ease', pointerEvents: 'none' }}
-        >
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M2 7h10M8.5 3.5L12 7l-3.5 3.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          Deslizar
-        </span>
-      </div>
-    </div>
-  )
+  return ref;
 }
 
-// ── About ─────────────────────────────────────────────────────────────────────
-export default function About() {
+function Reveal({
+  children,
+  delay = 0,
+  className = "",
+}: {
+  children: React.ReactNode;
+  delay?: number;
+  className?: string;
+}) {
+  const ref = useVisible<HTMLDivElement>(0.14);
   return (
-    <div className="bg-cream text-earth">
-      {/* ─── BLOCK 1 · Lo Efímero (ilustración como fondo) ────────────────── */}
-      <div className="relative overflow-hidden">
+    <div
+      ref={ref}
+      className={`reveal ${className}`}
+      style={{ transitionDelay: `${delay}ms` }}
+    >
+      {children}
+    </div>
+  );
+}
 
-        {/* Fondo: PNG transparente que ocupa gran parte del bloque */}
-        <img
-          src="/disenio.png"
-          alt="Ilustración acuarela de cerezo sakura floreciente sobre roca"
-          className="absolute left-0 bottom-0 h-full w-full md:w-[50%] object-cover opacity-25 md:opacity-100 pointer-events-none select-none"
-          style={{
-            // Ajusta el encuadre: 'center bottom' muestra la base/roca, 'center 30%' muestra más copa
-            objectPosition: 'center 55%',
-            animation: 'sakuraBreath 14s ease-in-out infinite',
-            transformOrigin: 'center bottom',
-            filter: 'saturate(1.06) brightness(0.98)',
-            // Desvanece el borde derecho para que se funda con el fondo y el texto
-            WebkitMaskImage: 'linear-gradient(to right, #000 78%, transparent 100%)',
-            maskImage: 'linear-gradient(to right, #000 78%, transparent 100%)',
-          }}
-        />
+function Eyebrow({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="eyebrow">
+      <span />
+      {children}
+    </div>
+  );
+}
 
-        <div
-          className="absolute bottom-5 left-5 px-3 py-1.5 z-10"
-          style={{ backgroundColor: 'rgba(74,46,39,0.62)', backdropFilter: 'blur(6px)' }}
+function WordReveal({
+  children,
+  className = "",
+}: {
+  children: string;
+  className?: string;
+}) {
+  const ref = useVisible<HTMLDivElement>(0.25);
+  return (
+    <div ref={ref} className={`word-reveal ${className}`}>
+      {children.split(" ").map((word, index) => (
+        <span
+          className="word"
+          key={`${word}-${index}`}
+          style={{ transitionDelay: `${index * 38}ms` }}
         >
-          <span className="text-cream font-sans text-[9px] tracking-[0.24em] uppercase font-medium">
-            Saku Films
-          </span>
-        </div>
+          {word}&nbsp;
+        </span>
+      ))}
+    </div>
+  );
+}
 
-        <section className="relative max-w-[1320px] mx-auto px-6 md:px-12 pt-8 md:pt-10 pb-6 md:pb-8 md:min-h-[680px] flex items-center">
-          <div className="grid grid-cols-1 md:grid-cols-2 w-full">
+/**
+ * Carrusel infinito con scroll nativo:
+ * - Avanza solo (se pausa al tocar / pasar el mouse y retoma luego).
+ * - Se desliza con el dedo en celular/tablet y se arrastra con el mouse.
+ * - 3 copias de la lista para poder loopear en ambos sentidos sin saltos.
+ */
+function Carousel() {
+  const ref = useRef<HTMLDivElement>(null);
 
-          {/* Texto sobre la mitad derecha */}
-          <div className="relative flex flex-col justify-center md:col-start-2">
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
 
-            <div className="relative">
-              <p className="font-sans text-[10px] tracking-[0.38em] uppercase text-rose font-medium mb-7">
-                Nosotros
-              </p>
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    const SPEED = 0.45; // px por frame
 
-              <h2
-                className="font-serif text-earth mb-10"
-                style={{
-                  fontSize: 'clamp(2.6rem, 4.4vw, 3.8rem)',
-                  fontWeight: 400,
-                  lineHeight: 1.04,
-                  letterSpacing: '-0.01em',
-                  fontOpticalSizing: 'auto',
-                } as React.CSSProperties}
-              >
-                Lo efímero<br />
-                <em style={{ fontStyle: 'italic' }}>se vuelve eterno</em>
-              </h2>
+    let raf = 0;
+    let paused = false;
+    let resumeTimer: number | undefined;
+    let pos = 0;
 
-              <div className="w-9 h-px bg-blush mb-10" style={{ opacity: 0.5 }} />
+    const third = () => el.scrollWidth / 3;
 
-              <div
-                className="font-sans text-earth"
-                style={{
-                  fontSize: '13.5px',
-                  lineHeight: 1.9,
-                  opacity: 0.8,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '1.35rem',
-                }}
-              >
-                <p>
-                  Saku nace de la belleza efímera del Sakura. No es solo una inspiración estética.
-                  Es un símbolo, un concepto que atraviesa nuestra manera de mirar:{' '}
-                  <em className="font-serif" style={{ fontSize: '15px', opacity: 1 }}>
-                    lo efímero se vuelve eterno.
-                  </em>
-                </p>
-                <p>
-                  Contamos historias desde adentro. Nos acercamos a cada pareja para descubrir sus
-                  gestos, sus vínculos y esos pequeños momentos que hacen que su historia sea
-                  verdaderamente propia.
-                </p>
-                <p>
-                  No hacemos films en serie. Creamos relatos audiovisuales sensibles, personalizados
-                  y con identidad, para que cada película sea tan única y auténtica como la historia
-                  que cuenta.
-                </p>
-                <p style={{ fontWeight: 500, opacity: 1 }}>
-                  Porque hay momentos que suceden una sola vez. Y merecen volver a sentirse.
-                </p>
-              </div>
-            </div>
-          </div>
-          </div>
-        </section>
-      </div>
+    // Arranca en la copia del medio para poder ir hacia atrás
+    el.scrollLeft = third();
+    pos = el.scrollLeft;
 
-      {/* hairline divider */}
-      <div className="max-w-[1320px] mx-auto px-6 md:px-12">
-        <div className="w-full h-px" style={{ background: 'rgba(201,143,135,0.18)' }} />
-      </div>
+    const normalize = () => {
+      const t = third();
+      if (!t) return;
+      if (el.scrollLeft >= t * 2) el.scrollLeft -= t;
+      else if (el.scrollLeft < t) el.scrollLeft += t;
+    };
 
-      {/* ─── BLOCK 2 · Una Dupla Creativa ────────────────────────────────── */}
-      <section className="max-w-[1320px] mx-auto px-6 md:px-12 pt-6 md:pt-8 pb-8 md:pb-12">
+    const pause = () => {
+      paused = true;
+      window.clearTimeout(resumeTimer);
+    };
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-start mb-8 md:mb-12">
+    const resumeLater = (ms: number) => {
+      window.clearTimeout(resumeTimer);
+      resumeTimer = window.setTimeout(() => {
+        pos = el.scrollLeft;
+        paused = false;
+      }, ms);
+    };
 
-          <div className="flex flex-col justify-center">
-            <p className="font-sans text-[10px] tracking-[0.38em] uppercase text-rose font-medium mb-7">
-              Los Fundadores
-            </p>
-            <h3
-              className="font-serif text-earth mb-10"
-              style={{
-                fontSize: 'clamp(1.9rem, 3.2vw, 2.7rem)',
-                fontWeight: 400,
-                lineHeight: 1.05,
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-                fontOpticalSizing: 'auto',
-              } as React.CSSProperties}
-            >
-              Una dupla<br />creativa
-            </h3>
-            <div className="w-9 h-px bg-blush mb-10" style={{ opacity: 0.5 }} />
-            <div
-              className="font-sans text-earth"
-              style={{
-                fontSize: '13.5px',
-                lineHeight: 1.9,
-                opacity: 0.8,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1.35rem',
-              }}
-            >
-              <p>
-                Somos Erica y Matías, una dupla creativa especializada en bodas. Trabajamos juntos
-                en cada proyecto, desde la mirada inicial hasta la edición final, construyendo una
-                narrativa propia.
-              </p>
-              <p>
-                Nuestra experiencia trabajando en edición de bodas para clientes internacionales nos
-                permitió desarrollar una mirada narrativa y un criterio audiovisual que llevamos a
-                cada historia.
-              </p>
-              <p>
-                No pensamos la boda solo desde el registro.{' '}
-                <span style={{ fontWeight: 600, opacity: 1 }}>Pensamos cómo contarla.</span>
-              </p>
-              <p>
-                Observamos los vínculos, los gestos, las emociones y esos momentos que muchas veces
-                suceden lejos de la mirada de una cámara. Cada elección —una imagen, un corte, un
-                sonido, un silencio— tiene un sentido dentro del relato.
-              </p>
-              <p
-                className="font-serif"
-                style={{
-                  fontSize: '15.5px',
-                  lineHeight: 1.55,
-                  fontStyle: 'italic',
-                  opacity: 0.92,
-                  paddingTop: '0.3rem',
-                }}
-              >
-                "Porque no queremos hacer una película sobre una boda. Queremos contar la historia
-                de quienes la están viviendo."
-              </p>
-            </div>
-          </div>
+    const tick = () => {
+      if (!paused) {
+        const t = third();
+        pos += SPEED;
+        if (pos >= t * 2) pos -= t;
+        el.scrollLeft = pos;
+      }
+      raf = requestAnimationFrame(tick);
+    };
 
-          <div className="relative aspect-[4/5] overflow-hidden bg-petal w-[80%] ml-auto">
+    if (!reduceMotion) raf = requestAnimationFrame(tick);
+
+    // Táctil: scroll nativo; solo pausamos el auto-avance
+    const onTouchStart = () => pause();
+    const onTouchEnd = () => resumeLater(2500); // espera la inercia del swipe
+
+    // Trackpad / rueda horizontal
+    const onWheel = () => {
+      pause();
+      resumeLater(1500);
+    };
+
+    // Mouse: hover pausa + arrastre
+    let dragging = false;
+    let startX = 0;
+    let startLeft = 0;
+
+    const onPointerEnter = (e: PointerEvent) => {
+      if (e.pointerType === "mouse") pause();
+    };
+    const onPointerLeave = (e: PointerEvent) => {
+      if (e.pointerType === "mouse" && !dragging) resumeLater(600);
+    };
+    const onPointerDown = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse") return;
+      dragging = true;
+      startX = e.clientX;
+      startLeft = el.scrollLeft;
+      el.classList.add("is-dragging");
+      el.setPointerCapture(e.pointerId);
+      pause();
+    };
+    const onPointerMove = (e: PointerEvent) => {
+      if (!dragging) return;
+      el.scrollLeft = startLeft - (e.clientX - startX);
+    };
+    const onPointerUp = (e: PointerEvent) => {
+      if (!dragging) return;
+      dragging = false;
+      el.classList.remove("is-dragging");
+      if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+      resumeLater(1200);
+    };
+
+    el.addEventListener("scroll", normalize, { passive: true });
+    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchend", onTouchEnd, { passive: true });
+    el.addEventListener("touchcancel", onTouchEnd, { passive: true });
+    el.addEventListener("wheel", onWheel, { passive: true });
+    el.addEventListener("pointerenter", onPointerEnter);
+    el.addEventListener("pointerleave", onPointerLeave);
+    el.addEventListener("pointerdown", onPointerDown);
+    el.addEventListener("pointermove", onPointerMove);
+    el.addEventListener("pointerup", onPointerUp);
+    el.addEventListener("pointercancel", onPointerUp);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(resumeTimer);
+      el.removeEventListener("scroll", normalize);
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchend", onTouchEnd);
+      el.removeEventListener("touchcancel", onTouchEnd);
+      el.removeEventListener("wheel", onWheel);
+      el.removeEventListener("pointerenter", onPointerEnter);
+      el.removeEventListener("pointerleave", onPointerLeave);
+      el.removeEventListener("pointerdown", onPointerDown);
+      el.removeEventListener("pointermove", onPointerMove);
+      el.removeEventListener("pointerup", onPointerUp);
+      el.removeEventListener("pointercancel", onPointerUp);
+    };
+  }, []);
+
+  const total = carouselPhotos.length;
+  const loop = [...carouselPhotos, ...carouselPhotos, ...carouselPhotos];
+
+  return (
+    <div className="carousel" ref={ref} aria-label="Galería detrás de escena">
+      <div className="carousel-track">
+        {loop.map((photo, index) => (
+          <figure className="carousel-card" key={`${photo.src}-${index}`}>
             <img
-              src="/disenio_2.jpg"
-              alt="Erica y Matías, fundadores de SAKU Films"
-              className="w-full h-full object-cover"
+              src={photo.src}
+              alt={index < total ? photo.alt : ""}
+              loading="lazy"
+              decoding="async"
+              draggable={false}
             />
-            <div
-              className="absolute inset-x-0 bottom-0 h-2/5"
-              style={{ background: 'linear-gradient(to top, rgba(74,46,39,0.14), transparent)' }}
-            />
-            <div
-              className="absolute bottom-5 right-5 px-3 py-1.5"
-              style={{ backgroundColor: 'rgba(240,225,218,0.9)', backdropFilter: 'blur(6px)' }}
-            >
-              <span className="font-sans text-[9px] tracking-[0.22em] uppercase text-earth font-medium">
-                Erica &amp; Matías
-              </span>
+            <figcaption>{String((index % total) + 1).padStart(2, "0")}</figcaption>
+          </figure>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function About() {
+  useEffect(() => {
+    const updateParallax = () =>
+      document.documentElement.style.setProperty(
+        "--page-scroll",
+        `${Math.min(window.scrollY, window.innerHeight)}`,
+      );
+    updateParallax();
+    window.addEventListener("scroll", updateParallax, { passive: true });
+    return () => window.removeEventListener("scroll", updateParallax);
+  }, []);
+
+  return (
+    <div className="about">
+      <section className="manifesto">
+        <div className="sakura-bg" aria-hidden="true">
+          <img src={disenio} alt="" />
+        </div>
+        <div className="grain" />
+        <div className="sparkle sparkle-one">✦</div>
+        <div className="sparkle sparkle-two">✧</div>
+        <svg className="mobile-blossom" viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M32 29C24 18 28 8 32 5C37 9 40 19 32 29Z" />
+          <path d="M29 32C18 24 8 28 5 32C9 37 19 40 29 32Z" />
+          <path d="M35 32C46 24 56 28 59 32C55 37 45 40 35 32Z" />
+          <path d="M32 35C24 46 28 56 32 59C37 55 40 45 32 35Z" />
+          <circle cx="32" cy="32" r="3" />
+          <path className="blossom-stem" d="M34 36C41 44 46 50 54 54" />
+        </svg>
+        <svg className="botanical-line" viewBox="0 0 180 260" aria-hidden="true">
+          <path d="M18 252C56 201 57 136 104 78C125 52 146 29 169 9" />
+          <path d="M73 144C50 134 38 112 40 87C62 94 76 112 73 144Z" />
+          <path d="M108 73C107 48 122 27 146 18C147 42 134 62 108 73Z" />
+        </svg>
+        <div className="manifesto-content">
+          <Reveal>
+            <Eyebrow>Nosotros</Eyebrow>
+          </Reveal>
+          <Reveal delay={90}>
+            <h1 className="display-title">Lo efímero se vuelve eterno</h1>
+          </Reveal>
+          <div className="manifesto-narrative">
+            <WordReveal>
+              Saku nace de la belleza efímera del Sakura. No es solo una inspiración estética. Es un símbolo, un concepto que atraviesa nuestra manera de mirar: lo efímero se vuelve eterno.
+            </WordReveal>
+            <WordReveal>
+              Contamos historias desde adentro. Nos acercamos a cada pareja para descubrir sus gestos, sus vínculos y esos pequeños momentos que hacen que su historia sea verdaderamente propia.
+            </WordReveal>
+            <WordReveal>
+              No hacemos films en serie. Creamos relatos audiovisuales sensibles, personalizados y con identidad, para que cada película sea tan única y auténtica como la historia que cuenta.
+            </WordReveal>
+            <WordReveal className="narrative-closing">
+              Porque hay momentos que suceden una sola vez. Y merecen volver a sentirse.
+            </WordReveal>
+          </div>
+        </div>
+      </section>
+
+      <section className="founders">
+        <div className="founders-layout">
+          <div className="founders-main">
+            <Reveal>
+              <Eyebrow>Los Fundadores</Eyebrow>
+            </Reveal>
+            <Reveal delay={80}>
+              <h2 className="section-title">Una dupla creativa</h2>
+            </Reveal>
+            <div className="body-copy founders-body">
+              <Reveal delay={180}>
+                <p>
+                  Somos Erica y Matías, una dupla creativa especializada en
+                  bodas. Trabajamos juntos en cada proyecto, desde la mirada
+                  inicial hasta la edición final, construyendo una narrativa
+                  propia.
+                </p>
+              </Reveal>
+              <Reveal delay={280}>
+                <p>
+                  Nuestra experiencia trabajando en edición de bodas para
+                  clientes internacionales nos permitió desarrollar una mirada
+                  narrativa y un criterio audiovisual que llevamos a cada
+                  historia.
+                </p>
+              </Reveal>
+              <Reveal delay={380}>
+                <p className="emphasis-line">
+                  No pensamos la boda solo desde el registro. <em>Pensamos cómo contarla.</em>
+                </p>
+              </Reveal>
+              <Reveal delay={480}>
+                <p>
+                  Observamos los vínculos, los gestos, las emociones y esos
+                  momentos que muchas veces suceden lejos de la mirada de una
+                  cámara. Cada elección —una imagen, un corte, un sonido, un
+                  silencio— tiene un sentido dentro del relato.
+                </p>
+              </Reveal>
             </div>
+          </div>
+          <div className="founders-aside">
+            <Reveal delay={160} className="portrait-wrap">
+              <img
+                className="portrait"
+                src={disenio2}
+                alt="Erica y Matías, dupla creativa de Saku"
+              />
+              <div className="portrait-caption">
+                <span>Erica &amp; Matías</span>
+                <span>Dirección · Film · Edición</span>
+              </div>
+            </Reveal>
+            <Reveal delay={300} className="quote-wrap">
+              <div className="quote-mark">“</div>
+              <blockquote>
+                Porque no queremos hacer una película sobre una boda. Queremos
+                contar la historia de quienes la están viviendo.
+              </blockquote>
+              <div className="quote-rule" />
+            </Reveal>
           </div>
         </div>
 
-        <InfiniteCarousel />
+        <div className="carousel-heading">
+          <span>Detrás de cada historia</span>
+          <span className="carousel-line" />
+          <span>Desliza</span>
+        </div>
+        <Carousel />
       </section>
     </div>
-  )
+  );
 }
