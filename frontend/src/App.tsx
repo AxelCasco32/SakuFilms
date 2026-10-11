@@ -10,9 +10,9 @@ import Films from './components/Films'
 import Destination from './components/Destination'
 import Services from './components/Services'
 import Contact from './components/Contact'
-import CtaFinal from './components/CtaFinal'
+//import CtaFinal from './components/CtaFinal'
 import Footer from './components/Footer'
-import CtaIntermediate from './components/CtaIntermediate'
+// import CtaIntermediate from './components/CtaIntermediate'
 
 
 export default function App() {
@@ -39,9 +39,9 @@ export default function App() {
           <Films />
           <Destination />
           <Services />
-          <CtaIntermediate />
+        
           <Contact />
-          <CtaFinal />
+          
         </main>
         <Footer />
       </div>
