@@ -11,19 +11,31 @@
   h1 { font-family: Georgia, serif; font-weight: 400; }
   .card { background: var(--card); border-radius: 10px; padding: 20px; margin-bottom: 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); max-width: 900px; }
   input, select, textarea { display:block; width:100%; padding:10px; margin-bottom:12px; border:1px solid var(--border); border-radius:6px; font-family:inherit; }
+  textarea { resize: vertical; min-height: 90px; }
   label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); }
   button { background: var(--text); color: #fff; border:none; padding:10px 20px; border-radius:6px; cursor:pointer; font-family:inherit; }
   button:hover { background: var(--accent); }
+  button:disabled { opacity: 0.6; cursor: wait; }
   button.danger { background: #b33; }
   table { width:100%; border-collapse: collapse; max-width: 900px; }
   td, th { text-align:left; padding:8px; border-bottom:1px solid var(--border); font-size:0.85rem; }
-  img.thumb { width:60px; height:60px; object-fit:cover; border-radius:4px; cursor:pointer; transition: opacity .2s; }
-  img.thumb:hover { opacity: 0.75; }
+  img.thumb { width:60px; height:60px; object-fit:cover; border-radius:4px; transition: opacity .2s; }
   .thumb-wrap { position:relative; display:inline-block; }
+  .thumb-wrap.clickable { cursor:pointer; }
+  .thumb-wrap.clickable:hover img.thumb { opacity: 0.75; }
   .play-badge { position:absolute; bottom:2px; right:2px; background:rgba(0,0,0,0.65); color:#fff; font-size:9px; padding:1px 4px; border-radius:3px; pointer-events:none; }
   #app { display:none; }
   .row { display:flex; gap:12px; flex-wrap: wrap; }
   .row > div { flex:1; min-width:160px; }
+  .hint { font-size:0.8rem; opacity:0.7; margin:-6px 0 12px; }
+  .checks { display:flex; gap:10px 22px; flex-wrap:wrap; margin: 6px 0 4px; }
+  .check { display:flex; align-items:center; gap:8px; font-size:0.9rem; text-transform:none; letter-spacing:0; color:var(--text); cursor:pointer; }
+  .check input { display:inline-block; width:auto; margin:0; }
+  .section-box { border:1px dashed var(--border); border-radius:8px; padding:14px; margin-bottom:14px; }
+  .kept-list { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+  .kept { position:relative; width:64px; height:64px; }
+  .kept img { width:100%; height:100%; object-fit:cover; border-radius:4px; }
+  .kept button { position:absolute; top:-6px; right:-6px; width:20px; height:20px; padding:0; border-radius:50%; background:#b33; font-size:12px; line-height:20px; }
   .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:1000; align-items:center; justify-content:center; }
   .modal-overlay.open { display:flex; }
   .modal-box { background:#000; width:min(880px, 92vw); aspect-ratio:16/9; position:relative; }
@@ -48,35 +60,53 @@
   <button onclick="logout()" style="margin-bottom:20px;">Cerrar sesión</button>
 
   <div class="card">
-    <h2 id="formTitle">Nuevo film</h2>
+    <h2 id="formTitle">Nuevo proyecto</h2>
     <input type="hidden" id="filmId" />
     <div class="row">
       <div><label>Pareja / Proyecto</label><input id="couple" placeholder="Lucía & Mateo" /></div>
-      <div><label>Ubicación</label><input id="location" placeholder="Buenos Aires" /></div>
+      <div><label>Ubicación (opcional)</label><input id="location" placeholder="Buenos Aires" /></div>
     </div>
     <div class="row">
-      <div>
-        <label>Categoría</label>
-        <select id="category"></select>
-      </div>
-      <div><label>Año</label><input id="year" placeholder="2024" /></div>
-      <div><label>Posición (orden en el carousel)</label><input id="position" type="number" value="0" /></div>
+      <div><label>Año (opcional)</label><input id="year" placeholder="2024" /></div>
+      <div><label>Posición (orden de aparición)</label><input id="position" type="number" value="0" /></div>
     </div>
-    <label>Imagen (thumbnail)</label>
+
+    <label>Categorías</label>
+    <div class="checks" id="categories"></div>
+    <p class="hint">Los videos pueden estar en Wedding Films y Trailers a la vez. Wedding Photography va sola.</p>
+
+    <!-- Solo videos -->
+    <div id="videoFields" class="section-box">
+      <label>Link de YouTube</label>
+      <input id="videoUrl" placeholder="https://www.youtube.com/watch?v=..." />
+      <p class="hint">Los videos aparecen en el carousel del inicio y en la galería.</p>
+    </div>
+
+    <!-- Solo fotografía -->
+    <div id="photoFields" class="section-box" style="display:none;">
+      <p class="hint" style="margin-top:0;">Las fotografías aparecen solo en la galería, no en el carousel.</p>
+      <label>Fotos actuales <span id="keptCount"></span></label>
+      <div class="kept-list" id="keptImages"></div>
+      <label>Agregar fotos (podés elegir varias)</label>
+      <input id="photos" type="file" accept="image/*" multiple />
+      <label>O pegar links de fotos (uno por línea, ej. Cloudinary)</label>
+      <textarea id="imageUrls" placeholder="https://res.cloudinary.com/.../01.jpg&#10;https://res.cloudinary.com/.../02.jpg"></textarea>
+      <p class="hint">Si subís muchas fotos pesadas y tarda o falla, cargalas en tandas o usá links.</p>
+    </div>
+
+    <label>Imagen de portada (opcional)</label>
     <input id="image" type="file" accept="image/*" />
-    <p style="font-size:0.8rem; opacity:0.7; margin-top:-6px;">Si no subís una imagen nueva al editar, se mantiene la actual.</p>
-    <label>Link de YouTube del film</label>
-    <input id="videoUrl" placeholder="https://www.youtube.com/watch?v=..." />
-    <p style="font-size:0.8rem; opacity:0.7; margin-top:-6px;">Este proyecto se agrega automáticamente al carousel del home Y a la sección Films, categorizado.</p>
-    <button onclick="saveFilm()">Guardar</button>
+    <p class="hint">Si no subís una: en videos se usa la miniatura de YouTube y en fotografía la primera foto. Al editar, si no subís una nueva se mantiene la actual.</p>
+
+    <button id="saveBtn" onclick="saveFilm()">Guardar</button>
     <button onclick="resetForm()" style="background:#999;">Cancelar edición</button>
   </div>
 
   <div class="card">
-    <h2>Films</h2>
-    <p style="font-size:0.8rem; opacity:0.7;">Hacé click en la imagen para ver el video cargado.</p>
+    <h2>Proyectos</h2>
+    <p style="font-size:0.8rem; opacity:0.7;">Hacé click en la imagen de un video para verlo.</p>
     <table id="filmsTable">
-      <thead><tr><th>Img</th><th>Pareja</th><th>Categoría</th><th>Ubicación</th><th>Año</th><th></th></tr></thead>
+      <thead><tr><th>Img</th><th>Pareja / Proyecto</th><th>Categorías</th><th>Ubicación</th><th>Año</th><th></th></tr></thead>
       <tbody></tbody>
     </table>
   </div>
@@ -99,8 +129,11 @@
 
 <script>
 const API = '/api'
+const PHOTO = 'Wedding Photography'
 let token = localStorage.getItem('saku_token') || ''
 let categories = []
+let filmsById = {}
+let keptImages = [] // fotos actuales del proyecto que se está editando
 
 function headers(json = true) {
   const h = { Authorization: 'Bearer ' + token }
@@ -128,11 +161,15 @@ function openVideo(url) {
   const embed = toYoutubeEmbed(url)
   const content = document.getElementById('videoModalContent')
   if (!embed) {
-    content.innerHTML = '<p style="color:#fff; padding:20px;">Este film todavía no tiene un link de YouTube válido cargado.</p>'
+    content.innerHTML = '<p style="color:#fff; padding:20px;">Este proyecto todavía no tiene un link de YouTube válido cargado.</p>'
   } else {
     content.innerHTML = `<iframe src="${embed}?autoplay=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`
   }
   document.getElementById('videoModal').classList.add('open')
+}
+
+function openVideoById(id) {
+  openVideo((filmsById[id] || {}).videoUrl || '')
 }
 
 function closeVideo() {
@@ -140,12 +177,63 @@ function closeVideo() {
   document.getElementById('videoModalContent').innerHTML = ''
 }
 
+/* ───────── Categorías ───────── */
+
+function filmCats(f) {
+  if (Array.isArray(f.categories) && f.categories.length) return f.categories
+  return f.category ? [f.category] : []
+}
+
+function selectedCategories() {
+  return [...document.querySelectorAll('#categories input:checked')].map((i) => i.value)
+}
+
+function syncCategoryUI() {
+  const isPhoto = selectedCategories().includes(PHOTO)
+  document.getElementById('videoFields').style.display = isPhoto ? 'none' : 'block'
+  document.getElementById('photoFields').style.display = isPhoto ? 'block' : 'none'
+}
+
+// Wedding Photography no se puede combinar con las categorías de video
+function onCategoryChange(input) {
+  if (input.checked) {
+    document.querySelectorAll('#categories input').forEach((other) => {
+      if (other === input) return
+      if (input.value === PHOTO || other.value === PHOTO) other.checked = false
+    })
+  }
+  syncCategoryUI()
+}
+
+function setSelectedCategories(list) {
+  document.querySelectorAll('#categories input').forEach((i) => { i.checked = list.includes(i.value) })
+  syncCategoryUI()
+}
+
 async function loadCategories() {
   const res = await fetch(API + '/films/categories')
   categories = await res.json()
-  const select = document.getElementById('category')
-  select.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('')
+  document.getElementById('categories').innerHTML = categories
+    .map((c) => `<label class="check"><input type="checkbox" value="${c}" onchange="onCategoryChange(this)" /> ${c}</label>`)
+    .join('')
+  syncCategoryUI()
 }
+
+/* ───────── Fotos actuales (edición) ───────── */
+
+function renderKept() {
+  document.getElementById('keptImages').innerHTML = keptImages
+    .map((src, i) => `<div class="kept"><img src="${src}" /><button type="button" onclick="removeKept(${i})" title="Quitar">×</button></div>`)
+    .join('')
+  document.getElementById('keptCount').textContent = keptImages.length ? `(${keptImages.length})` : ''
+}
+
+function removeKept(i) {
+  keptImages.splice(i, 1)
+  renderKept()
+}
+
+/* ───────── Login ───────── */
 
 async function login() {
   const user = document.getElementById('loginUser').value
@@ -183,82 +271,131 @@ async function showApp() {
   loadContacts()
 }
 
+/* ───────── Proyectos ───────── */
+
 async function loadFilms() {
   const res = await fetch(API + '/films')
   const films = await res.json()
+  filmsById = Object.fromEntries(films.map((f) => [f._id, f]))
   const tbody = document.querySelector('#filmsTable tbody')
-  tbody.innerHTML = films.map(f => `
+  tbody.innerHTML = films.map((f) => {
+    const cats = filmCats(f)
+    const isPhoto = f.type === 'photography' || cats.includes(PHOTO)
+    const badge = isPhoto
+      ? `<span class="play-badge">📷 ${(f.images || []).length}</span>`
+      : f.videoUrl ? '<span class="play-badge">▶</span>' : ''
+    const click = isPhoto ? '' : ` onclick="openVideoById('${f._id}')"`
+    return `
     <tr>
       <td>
-        <div class="thumb-wrap" onclick='openVideo(${JSON.stringify(f.videoUrl || "")})'>
+        <div class="thumb-wrap ${isPhoto ? '' : 'clickable'}"${click}>
           <img class="thumb" src="${f.img}" />
-          ${f.videoUrl ? '<span class="play-badge">▶</span>' : ''}
+          ${badge}
         </div>
       </td>
       <td>${f.couple}</td>
-      <td>${f.category}</td>
-      <td>${f.location}</td>
-      <td>${f.year}</td>
+      <td>${cats.join(' · ')}</td>
+      <td>${f.location || ''}</td>
+      <td>${f.year || ''}</td>
       <td>
-        <button onclick='editFilm(${JSON.stringify(f)})'>Editar</button>
+        <button onclick="editFilm('${f._id}')">Editar</button>
         <button class="danger" onclick="deleteFilm('${f._id}')">Borrar</button>
       </td>
-    </tr>`).join('')
+    </tr>`
+  }).join('')
 }
 
-function editFilm(f) {
-  document.getElementById('formTitle').textContent = 'Editar film'
+function editFilm(id) {
+  const f = filmsById[id]
+  if (!f) return
+  document.getElementById('formTitle').textContent = 'Editar proyecto'
   document.getElementById('filmId').value = f._id
   document.getElementById('couple').value = f.couple
-  document.getElementById('location').value = f.location
-  document.getElementById('category').value = f.category
-  document.getElementById('year').value = f.year
+  document.getElementById('location').value = f.location || ''
+  document.getElementById('year').value = f.year || ''
   document.getElementById('position').value = f.position
   document.getElementById('videoUrl').value = f.videoUrl || ''
+  document.getElementById('imageUrls').value = ''
+  document.getElementById('photos').value = ''
+  document.getElementById('image').value = ''
+  setSelectedCategories(filmCats(f))
+  keptImages = [...(f.images || [])]
+  renderKept()
   window.scrollTo(0, 0)
 }
 
 function resetForm() {
-  document.getElementById('formTitle').textContent = 'Nuevo film'
+  document.getElementById('formTitle').textContent = 'Nuevo proyecto'
   document.getElementById('filmId').value = ''
-  ;['couple','location','year','videoUrl'].forEach(id => document.getElementById(id).value = '')
+  ;['couple', 'location', 'year', 'videoUrl', 'imageUrls'].forEach((id) => { document.getElementById(id).value = '' })
   document.getElementById('position').value = 0
   document.getElementById('image').value = ''
-  document.getElementById('category').selectedIndex = 0
+  document.getElementById('photos').value = ''
+  keptImages = []
+  renderKept()
+  setSelectedCategories([])
 }
 
 async function saveFilm() {
   const id = document.getElementById('filmId').value
+  const cats = selectedCategories()
+  if (!cats.length) { alert('Elegí al menos una categoría'); return }
+  const isPhoto = cats.includes(PHOTO)
+
   const fd = new FormData()
   fd.append('couple', document.getElementById('couple').value)
   fd.append('location', document.getElementById('location').value)
-  fd.append('category', document.getElementById('category').value)
   fd.append('year', document.getElementById('year').value)
   fd.append('position', document.getElementById('position').value)
-  fd.append('videoUrl', document.getElementById('videoUrl').value)
-  const file = document.getElementById('image').files[0]
-  if (file) fd.append('image', file)
+  fd.append('categories', cats.join(','))
 
-  const url = id ? `${API}/films/${id}` : `${API}/films`
-  const method = id ? 'PUT' : 'POST'
-  const res = await fetch(url, { method, headers: { Authorization: 'Bearer ' + token }, body: fd })
-  if (!res.ok) { alert('Error al guardar'); return }
-  resetForm()
-  loadFilms()
+  const cover = document.getElementById('image').files[0]
+  if (cover) fd.append('image', cover)
+
+  if (isPhoto) {
+    for (const file of document.getElementById('photos').files) fd.append('photos', file)
+    fd.append('imageUrls', document.getElementById('imageUrls').value)
+    if (id) fd.append('keepImages', JSON.stringify(keptImages))
+  } else {
+    fd.append('videoUrl', document.getElementById('videoUrl').value)
+  }
+
+  const btn = document.getElementById('saveBtn')
+  btn.disabled = true
+  btn.textContent = 'Guardando…'
+  try {
+    const url = id ? `${API}/films/${id}` : `${API}/films`
+    const method = id ? 'PUT' : 'POST'
+    const res = await fetch(url, { method, headers: { Authorization: 'Bearer ' + token }, body: fd })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      alert(data.error || 'Error al guardar')
+      return
+    }
+    resetForm()
+    loadFilms()
+  } catch {
+    alert('No se pudo conectar con el backend')
+  } finally {
+    btn.disabled = false
+    btn.textContent = 'Guardar'
+  }
 }
 
 async function deleteFilm(id) {
-  if (!confirm('¿Borrar este film?')) return
+  if (!confirm('¿Borrar este proyecto?')) return
   await fetch(`${API}/films/${id}`, { method: 'DELETE', headers: headers(false) })
   loadFilms()
 }
+
+/* ───────── Contacto ───────── */
 
 async function loadContacts() {
   const res = await fetch(API + '/contact', { headers: headers(false) })
   if (!res.ok) return
   const contacts = await res.json()
   const tbody = document.querySelector('#contactsTable tbody')
-  tbody.innerHTML = contacts.map(c => `
+  tbody.innerHTML = contacts.map((c) => `
     <tr>
       <td>${c.nombre} ${c.pareja ? '& ' + c.pareja : ''}</td>
       <td>${c.email}</td>
