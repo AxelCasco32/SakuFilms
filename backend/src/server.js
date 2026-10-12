@@ -11,7 +11,23 @@ import { authRouter } from './routes/auth.js'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
 
-app.use(cors({ origin: process.env.FRONTEND_URL || '*' }))
+// Orígenes permitidos: FRONTEND_URL separados por coma, sin espacios ni "/" al final
+const origenes = (process.env.FRONTEND_URL || '')
+  .split(',')
+  .map((o) => o.trim().replace(/\/$/, ''))
+  .filter(Boolean)
+
+app.use(
+  cors({
+    origin: (origin, cb) => {
+      // Sin origen (panel admin same-origin, curl, health checks) o sin lista configurada: permitir
+      if (!origin || origenes.length === 0 || origenes.includes(origin)) {
+        return cb(null, true)
+      }
+      cb(new Error('Origen no permitido por CORS'))
+    },
+  })
+)
 app.use(express.json())
 
 // Archivos subidos (imágenes de films)
