@@ -41,6 +41,10 @@
   .modal-box { background:#000; width:min(880px, 92vw); aspect-ratio:16/9; position:relative; }
   .modal-box iframe { width:100%; height:100%; border:0; }
   .modal-close { position:absolute; top:-36px; right:0; background:transparent; color:#fff; font-size:1.4rem; padding:4px 10px; }
+  /* NUEVO */
+  .settings-msg { display:inline-block; margin-left:12px; font-size:0.85rem; }
+  .settings-msg.ok { color:#2e7d32; }
+  .settings-msg.err { color:#b33; }
 </style>
 </head>
 <body>
@@ -109,6 +113,32 @@
       <thead><tr><th>Img</th><th>Pareja / Proyecto</th><th>Categorías</th><th>Ubicación</th><th>Año</th><th></th></tr></thead>
       <tbody></tbody>
     </table>
+  </div>
+
+  <!-- NUEVO: Ajustes del sitio -->
+  <div class="card">
+    <h2>Ajustes del sitio</h2>
+    <p class="hint" style="margin-top:0;">El botón de WhatsApp aparece en el sitio recién cuando cargás un número. Las redes se muestran en la sección de Contacto; las que dejes vacías no se muestran.</p>
+
+    <label>WhatsApp (con código de país, sin + ni espacios)</label>
+    <input id="set_whatsapp" placeholder="5491122334455" inputmode="numeric" />
+
+    <label>Mensaje inicial de WhatsApp</label>
+    <input id="set_whatsappMessage" placeholder="Hola! Quiero consultar por una cobertura de boda." />
+
+    <div class="row">
+      <div><label>Instagram</label><input id="set_instagram" placeholder="https://instagram.com/..." /></div>
+      <div><label>Facebook</label><input id="set_facebook" placeholder="https://facebook.com/..." /></div>
+    </div>
+    <div class="row">
+      <div><label>TikTok</label><input id="set_tiktok" placeholder="https://tiktok.com/@..." /></div>
+      <div><label>YouTube</label><input id="set_youtube" placeholder="https://youtube.com/@..." /></div>
+    </div>
+    <label>Vimeo</label>
+    <input id="set_vimeo" placeholder="https://vimeo.com/..." />
+
+    <button id="settingsBtn" onclick="saveSettings()">Guardar ajustes</button>
+    <span id="settingsMsg" class="settings-msg"></span>
   </div>
 
   <div class="card">
@@ -268,6 +298,7 @@ async function showApp() {
   document.getElementById('app').style.display = 'block'
   await loadCategories()
   loadFilms()
+  loadSettings() // NUEVO
   loadContacts()
 }
 
@@ -386,6 +417,56 @@ async function deleteFilm(id) {
   if (!confirm('¿Borrar este proyecto?')) return
   await fetch(`${API}/films/${id}`, { method: 'DELETE', headers: headers(false) })
   loadFilms()
+}
+
+/* ───────── Ajustes del sitio (NUEVO) ───────── */
+
+const SETTINGS_FIELDS = ['whatsapp', 'whatsappMessage', 'instagram', 'facebook', 'tiktok', 'youtube', 'vimeo']
+
+function fillSettings(s) {
+  SETTINGS_FIELDS.forEach((k) => {
+    document.getElementById('set_' + k).value = s[k] || ''
+  })
+}
+
+async function loadSettings() {
+  try {
+    const res = await fetch(API + '/settings')
+    if (!res.ok) return
+    fillSettings(await res.json())
+  } catch {}
+}
+
+async function saveSettings() {
+  const body = {}
+  SETTINGS_FIELDS.forEach((k) => { body[k] = document.getElementById('set_' + k).value })
+
+  const btn = document.getElementById('settingsBtn')
+  const msg = document.getElementById('settingsMsg')
+  btn.disabled = true
+  btn.textContent = 'Guardando…'
+  msg.textContent = ''
+  msg.className = 'settings-msg'
+  try {
+    const res = await fetch(API + '/settings', {
+      method: 'PUT', headers: headers(), body: JSON.stringify(body),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      msg.textContent = data.error || 'Error al guardar'
+      msg.className = 'settings-msg err'
+      return
+    }
+    fillSettings(await res.json())
+    msg.textContent = 'Guardado ✓'
+    msg.className = 'settings-msg ok'
+  } catch {
+    msg.textContent = 'No se pudo conectar con el backend'
+    msg.className = 'settings-msg err'
+  } finally {
+    btn.disabled = false
+    btn.textContent = 'Guardar ajustes'
+  }
 }
 
 /* ───────── Contacto ───────── */

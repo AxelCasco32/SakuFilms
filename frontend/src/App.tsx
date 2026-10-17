@@ -12,8 +12,8 @@ import Services from './components/Services'
 import Contact from './components/Contact'
 //import CtaFinal from './components/CtaFinal'
 import Footer from './components/Footer'
+import WhatsAppButton from './components/WhatsAppButton'
 // import CtaIntermediate from './components/CtaIntermediate'
-
 
 export default function App() {
   const [ready, setReady] = useState(false)
@@ -33,17 +33,17 @@ export default function App() {
         <main>
           <Hero />
           <Manifesto />
-      
+
           <FilmsCarousel />
           <About />
           <Films />
           <Destination />
           <Services />
-        
+
           <Contact />
-          
         </main>
         <Footer />
+        <WhatsAppButton />
       </div>
     </>
   )

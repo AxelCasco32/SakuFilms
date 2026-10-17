@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useScrollReveal } from '../hooks/useScrollReveal'
+import { useSettings } from '../hooks/useSettings'
 
 const COVERAGE_OPTIONS = [
   'Wedding Film completo',
@@ -25,6 +26,7 @@ export default function Contact() {
     mensaje: '',
   })
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+  const settings = useSettings()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -45,6 +47,23 @@ export default function Contact() {
 
   const titleRef = useScrollReveal<HTMLDivElement>()
   const formRef = useScrollReveal<HTMLDivElement>()
+
+  // Redes: las carga el cliente desde el panel admin. Las vacías no se muestran.
+  const whatsappHref = settings.whatsapp
+    ? `https://wa.me/${settings.whatsapp}${
+        settings.whatsappMessage ? `?text=${encodeURIComponent(settings.whatsappMessage)}` : ''
+      }`
+    : ''
+
+  const socialLinks = [
+    { label: 'WhatsApp', href: whatsappHref },
+    { label: 'Instagram', href: settings.instagram },
+    { label: 'Facebook', href: settings.facebook },
+    { label: 'TikTok', href: settings.tiktok },
+    { label: 'YouTube', href: settings.youtube },
+    { label: 'Vimeo', href: settings.vimeo },
+    { label: 'Email', href: 'mailto:hola@sakufilms.com' },
+  ].filter((s) => s.href)
 
   const inputStyle: React.CSSProperties = {
     width: '100%',
@@ -77,6 +96,7 @@ export default function Contact() {
       style={{
         backgroundColor: '#E8D4CE',
         padding: 'clamp(70px, 10vw, 130px) clamp(24px, 8vw, 100px)',
+        scrollMarginTop: '72px',
       }}
     >
       <div
@@ -100,7 +120,7 @@ export default function Contact() {
               marginBottom: '20px',
             }}
           >
-            Contacto
+            Reservá tu fecha
           </div>
           <h2
             style={{
@@ -112,7 +132,8 @@ export default function Contact() {
               marginBottom: '24px',
             }}
           >
-            Contemos<br />su historia.
+            Tu historia<br />
+            <em style={{ fontStyle: 'italic' }}>empieza aquí.</em>
           </h2>
           <p
             style={{
@@ -126,35 +147,44 @@ export default function Contact() {
               marginBottom: '48px',
             }}
           >
-            Cada historia comienza con una conversación. Escribinos y empecemos a imaginar la tuya.
+            Contanos sobre tu boda. Te responderemos en menos de 24 horas para confirmar disponibilidad y enviarte los detalles de tu paquete.
           </p>
 
-          {/* Social links */}
+          {/* Social links (desde el backend) */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {[
-              { label: 'WhatsApp', href: '#', icon: '→' },
-              { label: 'Instagram', href: '#', icon: '→' },
-              { label: 'Email', href: 'mailto:hola@sakufilms.com', icon: '→' },
-            ].map((s) => (
-              <a
-                key={s.label}
-                href={s.href}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  borderBottom: '1px solid #C98F8740',
-                  paddingBottom: '14px',
-                  textDecoration: 'none',
-                  color: '#69483F',
-                }}
-              >
-                <span style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 500, fontSize: '0.78rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                  {s.label}
-                </span>
-                <span style={{ color: '#B8756B' }}>{s.icon}</span>
-              </a>
-            ))}
+            {socialLinks.map((s) => {
+              const external = s.href.startsWith('http')
+              return (
+                <a
+                  key={s.label}
+                  href={s.href}
+                  target={external ? '_blank' : undefined}
+                  rel={external ? 'noopener noreferrer' : undefined}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    borderBottom: '1px solid #C98F8740',
+                    paddingBottom: '14px',
+                    textDecoration: 'none',
+                    color: '#69483F',
+                  }}
+                >
+                  <span
+                    style={{
+                      fontFamily: "'Manrope', sans-serif",
+                      fontWeight: 500,
+                      fontSize: '0.78rem',
+                      letterSpacing: '0.08em',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    {s.label}
+                  </span>
+                  <span style={{ color: '#B8756B' }}>→</span>
+                </a>
+              )
+            })}
           </div>
         </div>
 
