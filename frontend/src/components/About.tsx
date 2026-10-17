@@ -305,7 +305,7 @@ export default function About() {
   }, []);
 
   return (
-    <div className="about">
+    <div className="about" id="nosotros">
       <section className="manifesto">
         <div className="sakura-bg" aria-hidden="true">
           <img src={disenio} alt="" />
@@ -400,7 +400,6 @@ export default function About() {
               />
               <div className="portrait-caption">
                 <span>Erica &amp; Matías</span>
-                <span>Dirección · Film · Edición</span>
               </div>
             </Reveal>
             <Reveal delay={300} className="quote-wrap">

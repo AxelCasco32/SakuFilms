@@ -22,7 +22,28 @@
   align-items: center;
   padding: 6.5vw 6vw 7vw;
   color: #292521;
-  background: linear-gradient(175deg, #f8d7d0 0%, #f8d4f8 55%, #f5ecf8 100%);
+  .gradient {
+  background-image: linear-gradient(
+    320deg,
+    hsl(19deg 42% 90%) 0%,
+    hsl(18deg 40% 87%) 15%,
+    hsl(18deg 38% 84%) 22%,
+    hsl(17deg 37% 81%) 28%,
+    hsl(16deg 36% 78%) 33%,
+    hsl(15deg 35% 75%) 37%,
+    hsl(15deg 34% 72%) 42%,
+    hsl(14deg 33% 70%) 46%,
+    hsl(13deg 32% 67%) 50%,
+    hsl(13deg 32% 64%) 54%,
+    hsl(12deg 31% 62%) 58%,
+    hsl(11deg 30% 59%) 63%,
+    hsl(10deg 30% 57%) 67%,
+    hsl(10deg 29% 54%) 72%,
+    hsl(9deg 28% 52%) 78%,
+    hsl(8deg 28% 49%) 85%,
+    hsl(7deg 30% 47%) 100%
+  );
+}
 }
 
 /* Fondo: disenio ocupa solo la mitad izquierda, con borde difuminado */
