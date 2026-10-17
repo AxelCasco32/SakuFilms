@@ -1,53 +1,89 @@
 import { useState } from 'react'
 import { useScrollReveal } from '../hooks/useScrollReveal'
 
-const SERVICES = [
+type Sub = { label: string; tagline: string; desc: string }
+
+type Service = {
+  title: string
+  intro?: string
+  tagline?: string
+  desc?: string
+  subs?: Sub[]
+}
+
+const SERVICES: Service[] = [
   {
-    num: '01',
     title: 'Wedding Films',
-    desc: "Películas de boda construidas desde una mirada documental y cinematográfica. Capturamos la emoción, el silencio, el abrazo. Lo que no se puede repetir.",
-    img: 'https://images.unsplash.com/photo-1606216794050-6ff7db8cb43d?w=600&h=400&fit=crop&auto=format',
+    desc: 'Películas de boda construidas desde una mirada documental y cinematográfica. Capturamos la emoción, el silencio, el abrazo. Lo que no se puede repetir.',
   },
   {
-    num: '02',
-    title: 'Trailers',
-    desc: "Piezas breves para revivir la esencia del día. Cada frame seleccionado con intención narrativa.",
-    img: 'https://images.unsplash.com/photo-1547911139-c06c87da7115?w=600&h=400&fit=crop&auto=format',
+    title: 'Wedding Photography',
+    desc: 'Registro natural de momentos, detalles y emociones. Luz real, movimiento real, historia real.',
   },
   {
-    num: '03',
-    title: 'Highlights',
-    desc: "Una selección emocional de los momentos más importantes, construida para volver a sentirlos.",
-    img: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=600&h=400&fit=crop&auto=format',
-  },
-  {
-    num: '04',
-    title: 'Fotografía',
-    desc: "Registro natural de momentos, detalles y emociones. Luz real, movimiento real, historia real.",
-    img: 'https://images.unsplash.com/photo-1600270237614-d20aef1c8b14?w=600&h=400&fit=crop&auto=format',
-  },
-  {
-    num: '05',
     title: 'Content Creation',
-    desc: "Contenido pensado para redes sociales y comunicación digital. Una extensión de la identidad visual de la boda.",
-    img: 'https://images.unsplash.com/photo-1607190074257-dd4b7af0309f?w=600&h=400&fit=crop&auto=format',
+    desc: 'Contenido pensado para redes sociales y comunicación digital. Una extensión de la identidad visual de la boda.',
   },
   {
-    num: '06',
-    title: 'Destination Weddings',
-    desc: "Cobertura audiovisual de bodas en distintos destinos. Viajamos con la historia.",
-    img: 'https://images.unsplash.com/photo-1532712938310-34cb3982ef74?w=600&h=400&fit=crop&auto=format',
+    title: 'Sesiones pre y post boda',
+    intro:
+      'Una experiencia para volver a encontrarse, crear nuevos momentos y seguir construyendo su historia.',
+    subs: [
+      {
+        label: 'Pre boda',
+        tagline: 'Una pausa antes de empezar.',
+        desc: 'Su historia empieza mucho antes del “sí, quiero”. Una sesión para capturar lo que los hace únicos y convertir ese momento en parte de su historia.',
+      },
+      {
+        label: 'Post boda',
+        tagline: 'Cuando el día termina, la historia continúa.',
+        desc: 'Una sesión para volver a ese vínculo, sin apuros ni protocolos, y crear nuevos momentos juntos.',
+      },
+    ],
+  },
+  {
+    title: 'Civil',
+    tagline: 'Porque cada “sí” merece ser parte de la historia.',
+    desc: 'Una cobertura audiovisual íntima para conservar ese momento en el que todo comienza.',
   },
 ]
 
 const PROCESS = [
-  { num: '01', title: 'Observamos', desc: 'Capturamos lo que sucede de forma natural.' },
-  { num: '02', title: 'Sentimos', desc: 'Encontramos los pequeños momentos que cuentan la historia.' },
-  { num: '03', title: 'Contamos', desc: 'Los convertimos en una película para volver a sentirlos.' },
+  { title: 'Observamos', desc: 'Capturamos lo que sucede de forma natural.' },
+  { title: 'Sentimos', desc: 'Encontramos los pequeños momentos que cuentan la historia.' },
+  { title: 'Contamos', desc: 'Los convertimos en una película para volver a sentirlos.' },
 ]
 
+const eyebrowStyle: React.CSSProperties = {
+  fontFamily: "'Manrope', sans-serif",
+  fontSize: '0.54rem',
+  letterSpacing: '0.26em',
+  textTransform: 'uppercase',
+  color: '#B8756B',
+}
+
+const bodyStyle: React.CSSProperties = {
+  fontFamily: "'Manrope', sans-serif",
+  fontWeight: 300,
+  fontSize: '0.74rem',
+  color: '#69483F',
+  lineHeight: 1.7,
+  margin: 0,
+  opacity: 0.8,
+}
+
+const taglineStyle: React.CSSProperties = {
+  fontFamily: "'Cormorant Garamond', serif",
+  fontStyle: 'italic',
+  fontWeight: 400,
+  fontSize: 'clamp(0.95rem, 1.4vw, 1.1rem)',
+  color: '#69483F',
+  lineHeight: 1.3,
+  margin: '0 0 6px',
+}
+
 export default function Services() {
-  const [hovered, setHovered] = useState<number | null>(null)
+  const [active, setActive] = useState<number | null>(null)
   const titleRef = useScrollReveal<HTMLDivElement>()
   const processRef = useScrollReveal<HTMLDivElement>()
 
@@ -56,27 +92,20 @@ export default function Services() {
       id="servicios"
       style={{
         backgroundColor: '#F0E1DA',
-        padding: 'clamp(70px, 10vw, 130px) clamp(24px, 8vw, 100px)',
+        padding: 'clamp(48px, 7vw, 90px) clamp(20px, 6vw, 80px)',
       }}
     >
-      <div ref={titleRef} className="reveal" style={{ marginBottom: 'clamp(40px, 6vw, 72px)', maxWidth: '600px' }}>
-        <div
-          style={{
-            fontFamily: "'Manrope', sans-serif",
-            fontSize: '0.58rem',
-            letterSpacing: '0.28em',
-            textTransform: 'uppercase',
-            color: '#B8756B',
-            marginBottom: '16px',
-          }}
-        >
-          Servicios
-        </div>
+      <div
+        ref={titleRef}
+        className="reveal"
+        style={{ marginBottom: 'clamp(28px, 4vw, 48px)', maxWidth: '600px' }}
+      >
+        <div style={{ ...eyebrowStyle, marginBottom: '12px' }}>Servicios</div>
         <h2
           style={{
             fontFamily: "'Cormorant Garamond', serif",
             fontWeight: 400,
-            fontSize: 'clamp(2rem, 4.5vw, 3.4rem)',
+            fontSize: 'clamp(1.6rem, 3.2vw, 2.4rem)',
             color: '#69483F',
             lineHeight: 1.2,
           }}
@@ -85,101 +114,90 @@ export default function Services() {
         </h2>
       </div>
 
-      {/* Services list */}
-      <div style={{ maxWidth: '900px' }}>
-        {SERVICES.map((s, i) => (
-          <div
-            key={s.num}
-            onMouseEnter={() => setHovered(i)}
-            onMouseLeave={() => setHovered(null)}
-            style={{
-              borderTop: i === 0 ? '1px solid #C98F8740' : undefined,
-              borderBottom: '1px solid #C98F8740',
-              padding: '28px 0',
-              display: 'flex',
-              gap: 'clamp(20px, 4vw, 56px)',
-              alignItems: 'flex-start',
-              cursor: 'default',
-              position: 'relative',
-              overflow: 'hidden',
-              backgroundColor: hovered === i ? '#E8D4CE30' : 'transparent',
-              transition: 'background-color 0.4s ease',
-            }}
-          >
-            <span
+      {/* Services list: la descripción se despliega con hover, foco o toque */}
+      <div style={{ maxWidth: '980px' }}>
+        {SERVICES.map((s, i) => {
+          const open = active === i
+
+          return (
+            <div
+              key={s.title}
+              tabIndex={0}
+              onMouseEnter={() => setActive(i)}
+              onMouseLeave={() => setActive(null)}
+              onFocus={() => setActive(i)}
+              onBlur={() => setActive(null)}
+              onClick={() => setActive(i)}
               style={{
-                fontFamily: "'Manrope', sans-serif",
-                fontSize: '0.62rem',
-                letterSpacing: '0.1em',
-                color: '#B8756B',
-                flexShrink: 0,
-                paddingTop: '4px',
+                borderTop: i === 0 ? '1px solid #C98F8740' : undefined,
+                borderBottom: '1px solid #C98F8740',
+                padding: '20px 0',
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '10px clamp(20px, 4vw, 56px)',
+                alignItems: 'flex-start',
+                cursor: 'pointer',
+                outline: 'none',
+                backgroundColor: open ? '#E8D4CE30' : 'transparent',
+                transition: 'background-color 0.4s ease',
               }}
             >
-              {s.num}
-            </span>
-            <div style={{ flex: 1 }}>
               <div
                 style={{
+                  flex: '0 0 clamp(200px, 28%, 260px)',
                   fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: 'clamp(1.3rem, 2.5vw, 1.9rem)',
+                  fontSize: 'clamp(1.1rem, 1.9vw, 1.4rem)',
                   fontWeight: 500,
                   color: '#69483F',
-                  marginBottom: '10px',
+                  lineHeight: 1.2,
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '16px',
+                  gap: '12px',
                 }}
               >
                 {s.title}
                 <span
+                  aria-hidden="true"
                   style={{
-                    fontSize: '1rem',
-                    opacity: hovered === i ? 1 : 0,
-                    transform: hovered === i ? 'translateX(0)' : 'translateX(-8px)',
-                    transition: 'opacity 0.35s ease, transform 0.35s ease',
+                    fontSize: '0.9rem',
                     color: '#B8756B',
+                    opacity: open ? 1 : 0.45,
+                    transform: open ? 'translateX(4px)' : 'translateX(0)',
+                    transition: 'opacity 0.35s ease, transform 0.35s ease',
                   }}
                 >
                   →
                 </span>
               </div>
-              <p
+
+              <div
                 style={{
-                  fontFamily: "'Manrope', sans-serif",
-                  fontWeight: 300,
-                  fontSize: '0.82rem',
-                  color: '#69483F',
-                  opacity: hovered === i ? 0.75 : 0,
-                  maxHeight: hovered === i ? '100px' : '0',
-                  overflow: 'hidden',
-                  lineHeight: 1.75,
-                  transition: 'opacity 0.4s ease, max-height 0.4s cubic-bezier(0.22,1,0.36,1)',
-                  margin: 0,
+                  flex: '1 1 280px',
+                  maxWidth: '600px',
+                  display: 'grid',
+                  gridTemplateRows: open ? '1fr' : '0fr',
+                  opacity: open ? 1 : 0,
+                  transition:
+                    'grid-template-rows 0.5s cubic-bezier(0.22,1,0.36,1), opacity 0.4s ease',
                 }}
               >
-                {s.desc}
-              </p>
-            </div>
+                <div style={{ overflow: 'hidden', minHeight: 0 }}>
+                  {s.intro && <p style={bodyStyle}>{s.intro}</p>}
+                  {s.tagline && <p style={taglineStyle}>{s.tagline}</p>}
+                  {s.desc && <p style={bodyStyle}>{s.desc}</p>}
 
-            {/* Hover image preview */}
-            <div
-              style={{
-                flexShrink: 0,
-                width: '120px',
-                height: '80px',
-                overflow: 'hidden',
-                opacity: hovered === i ? 1 : 0,
-                transform: hovered === i ? 'scale(1)' : 'scale(0.95)',
-                transition: 'opacity 0.45s ease, transform 0.45s cubic-bezier(0.22,1,0.36,1)',
-                backgroundColor: '#DDB4AB',
-                display: 'none',
-              }}
-            >
-              <img src={s.img} alt={s.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  {s.subs?.map((sub) => (
+                    <div key={sub.label} style={{ marginTop: '16px' }}>
+                      <div style={{ ...eyebrowStyle, marginBottom: '6px' }}>{sub.label}</div>
+                      <p style={taglineStyle}>{sub.tagline}</p>
+                      <p style={bodyStyle}>{sub.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       {/* Process section */}
@@ -187,68 +205,33 @@ export default function Services() {
         ref={processRef}
         className="reveal"
         style={{
-          marginTop: 'clamp(60px, 8vw, 100px)',
-          paddingTop: 'clamp(40px, 6vw, 60px)',
+          marginTop: 'clamp(36px, 5vw, 60px)',
+          paddingTop: 'clamp(24px, 4vw, 40px)',
           borderTop: '1px solid #C98F8730',
         }}
       >
-        <div
-          style={{
-            fontFamily: "'Manrope', sans-serif",
-            fontSize: '0.58rem',
-            letterSpacing: '0.28em',
-            textTransform: 'uppercase',
-            color: '#B8756B',
-            marginBottom: '48px',
-          }}
-        >
-          Cómo miramos
-        </div>
+        <div style={{ ...eyebrowStyle, marginBottom: '28px' }}>Cómo miramos</div>
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: 'clamp(32px, 5vw, 60px)',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gap: 'clamp(20px, 3vw, 40px)',
           }}
         >
           {PROCESS.map((p) => (
-            <div key={p.num}>
+            <div key={p.title}>
               <div
                 style={{
                   fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: '3rem',
-                  fontWeight: 300,
-                  color: '#DDB4AB',
-                  lineHeight: 1,
-                  marginBottom: '16px',
-                }}
-              >
-                {p.num}
-              </div>
-              <div
-                style={{
-                  fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: '1.5rem',
+                  fontSize: '1.2rem',
                   fontWeight: 500,
                   color: '#69483F',
-                  marginBottom: '10px',
+                  marginBottom: '6px',
                 }}
               >
                 {p.title}
               </div>
-              <p
-                style={{
-                  fontFamily: "'Manrope', sans-serif",
-                  fontWeight: 300,
-                  fontSize: '0.82rem',
-                  color: '#69483F',
-                  opacity: 0.65,
-                  lineHeight: 1.75,
-                  margin: 0,
-                }}
-              >
-                {p.desc}
-              </p>
+              <p style={{ ...bodyStyle, opacity: 0.65 }}>{p.desc}</p>
             </div>
           ))}
         </div>
