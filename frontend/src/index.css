@@ -299,6 +299,7 @@ body {
   display: block;
   background: var(--brown);
   color: var(--ivory);
+  font-family: var(--sans);
 }
 
 .portfolio-section button,
@@ -367,11 +368,12 @@ body {
 .title-row h1 {
   max-width: 820px;
   margin: 0;
-  font-family: var(--serif);
-  font-size: clamp(48px, 6.2vw, 94px);
+  font-family: var(--sans);
+  font-size: clamp(28px, 3.6vw, 56px);
   font-weight: 300;
-  line-height: 0.9;
-  letter-spacing: -0.035em;
+  line-height: 1.08;
+  letter-spacing: -0.005em;
+  text-transform: uppercase;
 }
 
 .filter-list {
@@ -476,11 +478,12 @@ body {
 }
 
 .project-name {
-  font-family: var(--serif);
-  font-size: clamp(30px, 3.5vw, 50px);
+  font-family: var(--sans);
+  font-size: clamp(24px, 2.6vw, 36px);
   font-weight: 300;
-  line-height: 0.95;
-  letter-spacing: -0.02em;
+  line-height: 1.1;
+  letter-spacing: -0.005em;
+  text-transform: uppercase;
 }
 
 .project-meta {
@@ -552,6 +555,7 @@ body {
   place-items: center;
   background: rgba(20, 13, 11, 0.96);
   color: var(--ivory);
+  font-family: var(--sans);
   animation: viewer-in 350ms ease both;
 }
 
@@ -608,10 +612,16 @@ body {
 
 .viewer-caption h3 {
   margin: 0;
-  font-family: var(--serif);
-  font-size: clamp(32px, 4vw, 52px);
+  font-family: var(--sans);
+  font-size: clamp(24px, 3vw, 38px);
   font-weight: 300;
-  line-height: 1;
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+
+/* h3 del visor de video: 30% más chico */
+.video-viewer .viewer-caption h3 {
+  font-size: clamp(17px, 2.1vw, 27px);
 }
 
 .viewer-caption span {
@@ -631,8 +641,9 @@ body {
 }
 
 .photo-stage {
-  width: min(78vw, 1180px);
-  height: min(76vh, 850px);
+  width: min(68vw, 1000px);
+  height: min(64vh, 700px);
+  margin-bottom: 40px; /* deja aire para el caption */
   display: grid;
   place-items: center;
 }
@@ -737,8 +748,8 @@ body {
   }
 
   .title-row h1 {
-    font-size: clamp(45px, 14vw, 62px);
-    line-height: 0.91;
+    font-size: clamp(26px, 8vw, 36px);
+    line-height: 1.1;
   }
 
   .filter-list {
@@ -815,7 +826,7 @@ body {
   }
 
   .project-name {
-    font-size: 36px;
+    font-size: 26px;
   }
 
   .video-shell {
@@ -846,8 +857,10 @@ body {
   }
 
   .photo-stage {
-    width: 100vw;
-    height: 76vh;
+    width: 92vw;
+    height: 58vh;
+    height: 58dvh;
+    margin-bottom: 70px; /* espacio para flechas y caption */
   }
 
   .viewer-arrow {
@@ -879,7 +892,7 @@ body {
 
   .photo-caption h3 {
     margin-top: 0;
-    font-size: 29px;
+    font-size: 22px;
   }
 
   .photo-caption span {
