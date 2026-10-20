@@ -8,6 +8,7 @@ import { filmsRouter } from './routes/films.js'
 import { contactRouter } from './routes/contact.js'
 import { authRouter } from './routes/auth.js'
 import settingsRoutes from './routes/settings.js'
+import carouselRoutes from './routes/carousel.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -32,6 +33,11 @@ const origenesEnv = (process.env.FRONTEND_URL || '')
 
 const origenes = [...new Set([...origenesFijos, ...origenesEnv])]
 
+// En desarrollo, Vite puede usar cualquier puerto (5173, 5177...) y abrirse por localhost o por IP de la red local
+const esLocalhost = (origin) =>
+  /^http:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+)(:\d+)?$/.test(origin)
+const esDesarrollo = process.env.NODE_ENV !== 'production'
+
 app.use((req, res, next) => {
   cors({
     origin: (origin, cb) => {
@@ -44,7 +50,9 @@ app.use((req, res, next) => {
         mismoHost = new URL(origin).host === req.get('host')
       } catch {}
 
-      if (mismoHost || origenes.includes(origin)) return cb(null, true)
+      if (mismoHost || origenes.includes(origin) || (esDesarrollo && esLocalhost(origin))) {
+        return cb(null, true)
+      }
 
       console.warn('CORS bloqueado:', origin)
       cb(new Error('Origen no permitido por CORS'))
@@ -72,6 +80,7 @@ app.use('/api/auth', authRouter)
 app.use('/api/films', filmsRouter)
 app.use('/api/contact', contactRouter)
 app.use('/api/settings', settingsRoutes)
+app.use('/api/carousel', carouselRoutes)
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }))
 

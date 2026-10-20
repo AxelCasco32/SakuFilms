@@ -41,7 +41,6 @@
   .modal-box { background:#000; width:min(880px, 92vw); aspect-ratio:16/9; position:relative; }
   .modal-box iframe { width:100%; height:100%; border:0; }
   .modal-close { position:absolute; top:-36px; right:0; background:transparent; color:#fff; font-size:1.4rem; padding:4px 10px; }
-  /* NUEVO */
   .settings-msg { display:inline-block; margin-left:12px; font-size:0.85rem; }
   .settings-msg.ok { color:#2e7d32; }
   .settings-msg.err { color:#b33; }
@@ -115,7 +114,7 @@
     </table>
   </div>
 
-  <!-- NUEVO: Ajustes del sitio -->
+  <!-- Ajustes del sitio -->
   <div class="card">
     <h2>Ajustes del sitio</h2>
     <p class="hint" style="margin-top:0;">El botón de WhatsApp aparece en el sitio recién cuando cargás un número. Las redes se muestran en la sección de Contacto; las que dejes vacías no se muestran.</p>
@@ -139,6 +138,22 @@
 
     <button id="settingsBtn" onclick="saveSettings()">Guardar ajustes</button>
     <span id="settingsMsg" class="settings-msg"></span>
+  </div>
+
+  <!-- NUEVO: Carrusel de Nosotros -->
+  <div class="card">
+    <h2>Carrusel de "Nosotros"</h2>
+    <p class="hint" style="margin-top:0;">Fotos de "Detrás de cada historia" en la página Nosotros. Al quitar una, deja de verse en el sitio.</p>
+
+    <label>Fotos actuales <span id="carouselCount"></span></label>
+    <div class="kept-list" id="carouselList"></div>
+
+    <label>Agregar fotos (podés elegir varias)</label>
+    <input id="carouselFiles" type="file" accept="image/*" multiple />
+    <label>O pegar links (uno por línea)</label>
+    <textarea id="carouselUrls" placeholder="https://res.cloudinary.com/.../foto.jpg"></textarea>
+
+    <button id="carouselBtn" onclick="addCarouselPhotos()">Agregar al carrusel</button>
   </div>
 
   <div class="card">
@@ -298,7 +313,8 @@ async function showApp() {
   document.getElementById('app').style.display = 'block'
   await loadCategories()
   loadFilms()
-  loadSettings() // NUEVO
+  loadSettings()
+  loadCarousel() // NUEVO
   loadContacts()
 }
 
@@ -419,7 +435,7 @@ async function deleteFilm(id) {
   loadFilms()
 }
 
-/* ───────── Ajustes del sitio (NUEVO) ───────── */
+/* ───────── Ajustes del sitio ───────── */
 
 const SETTINGS_FIELDS = ['whatsapp', 'whatsappMessage', 'instagram', 'facebook', 'tiktok', 'youtube', 'vimeo']
 
@@ -467,6 +483,56 @@ async function saveSettings() {
     btn.disabled = false
     btn.textContent = 'Guardar ajustes'
   }
+}
+
+/* ───────── Carrusel Nosotros (NUEVO) ───────── */
+
+async function loadCarousel() {
+  try {
+    const res = await fetch(API + '/carousel')
+    if (!res.ok) return
+    const photos = await res.json()
+    document.getElementById('carouselCount').textContent = photos.length ? `(${photos.length})` : ''
+    document.getElementById('carouselList').innerHTML = photos
+      .map((p) => `<div class="kept"><img src="${p.url.replace('/upload/', '/upload/w_160,c_limit/')}" /><button type="button" onclick="deleteCarouselPhoto('${p._id}')" title="Quitar">×</button></div>`)
+      .join('')
+  } catch {}
+}
+
+async function addCarouselPhotos() {
+  const files = document.getElementById('carouselFiles').files
+  const urls = document.getElementById('carouselUrls').value
+  if (!files.length && !urls.trim()) { alert('Elegí fotos o pegá links'); return }
+
+  const fd = new FormData()
+  for (const f of files) fd.append('photos', f)
+  fd.append('imageUrls', urls)
+
+  const btn = document.getElementById('carouselBtn')
+  btn.disabled = true
+  btn.textContent = 'Subiendo…'
+  try {
+    const res = await fetch(API + '/carousel', { method: 'POST', headers: { Authorization: 'Bearer ' + token }, body: fd })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      alert(data.error || 'Error al guardar')
+      return
+    }
+    document.getElementById('carouselFiles').value = ''
+    document.getElementById('carouselUrls').value = ''
+    loadCarousel()
+  } catch {
+    alert('No se pudo conectar con el backend')
+  } finally {
+    btn.disabled = false
+    btn.textContent = 'Agregar al carrusel'
+  }
+}
+
+async function deleteCarouselPhoto(id) {
+  if (!confirm('¿Quitar esta foto del carrusel?')) return
+  await fetch(`${API}/carousel/${id}`, { method: 'DELETE', headers: headers(false) })
+  loadCarousel()
 }
 
 /* ───────── Contacto ───────── */

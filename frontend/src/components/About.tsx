@@ -1,9 +1,17 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./About.css";
 
 const disenio = "/disenio.png";
 const disenio2 = "/disenio_2.jpg";
 
+// Usá la misma base de API que ya usan tus otros componentes
+const API = import.meta.env.VITE_API_URL ?? "/api";
+
+// Si el backend devuelve una ruta relativa (ej. "/uploads/foto.jpg"), se completa con el host del backend
+const API_ORIGIN = API.startsWith("http") ? new URL(API).origin : "";
+const resolveUrl = (url: string) => (url.startsWith("/") ? API_ORIGIN + url : url);
+
+// Respaldo: se usa solo si el backend no responde
 const carouselUrls = [
   "https://res.cloudinary.com/ex91suxd/image/upload/v1791647172/Vietnam_3.jpg",
   "https://res.cloudinary.com/ex91suxd/image/upload/v1791647171/Vietnam_2.jpg",
@@ -48,7 +56,9 @@ const carouselUrls = [
 
 // Cloudinary: formato y calidad automáticos + ancho máximo para que carguen livianas
 const optimize = (url: string) =>
-  url.replace("/upload/", "/upload/f_auto,q_auto,w_800,c_limit/");
+  url.includes("/upload/")
+    ? url.replace("/upload/", "/upload/f_auto,q_auto,w_800,c_limit/")
+    : url;
 
 // "Japon_14.jpg" -> "Japon"
 const altFromUrl = (url: string) => {
@@ -57,10 +67,14 @@ const altFromUrl = (url: string) => {
   return `Detrás de cámara: ${name}`;
 };
 
-const carouselPhotos = carouselUrls.map((url) => ({
-  src: optimize(url),
-  alt: altFromUrl(url),
-}));
+type Photo = { src: string; alt: string };
+
+const toPhoto = (rawUrl: string): Photo => {
+  const url = resolveUrl(rawUrl);
+  return { src: optimize(url), alt: altFromUrl(url) };
+};
+
+const fallbackPhotos: Photo[] = carouselUrls.map(toPhoto);
 
 function useVisible<T extends HTMLElement>(threshold: number) {
   const ref = useRef<T>(null);
@@ -142,8 +156,9 @@ function WordReveal({
  * - Avanza solo (se pausa al tocar / pasar el mouse y retoma luego).
  * - Se desliza con el dedo en celular/tablet y se arrastra con el mouse.
  * - 3 copias de la lista para poder loopear en ambos sentidos sin saltos.
+ * - Las fotos vienen del backend (panel admin).
  */
-function Carousel() {
+function Carousel({ photos }: { photos: Photo[] }) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -267,10 +282,10 @@ function Carousel() {
       el.removeEventListener("pointerup", onPointerUp);
       el.removeEventListener("pointercancel", onPointerUp);
     };
-  }, []);
+  }, [photos]);
 
-  const total = carouselPhotos.length;
-  const loop = [...carouselPhotos, ...carouselPhotos, ...carouselPhotos];
+  const total = photos.length;
+  const loop = [...photos, ...photos, ...photos];
 
   return (
     <div className="carousel" ref={ref} aria-label="Galería detrás de escena">
@@ -293,6 +308,8 @@ function Carousel() {
 }
 
 export default function About() {
+  const [photos, setPhotos] = useState<Photo[] | null>(null);
+
   useEffect(() => {
     const updateParallax = () =>
       document.documentElement.style.setProperty(
@@ -302,6 +319,22 @@ export default function About() {
     updateParallax();
     window.addEventListener("scroll", updateParallax, { passive: true });
     return () => window.removeEventListener("scroll", updateParallax);
+  }, []);
+
+  // Fotos del carrusel desde el backend
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`${API}/carousel`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("carousel"))))
+      .then((data: { url: string }[]) => {
+        if (!cancelled) setPhotos(data.map((p) => toPhoto(p.url)));
+      })
+      .catch(() => {
+        if (!cancelled) setPhotos(fallbackPhotos);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
@@ -418,7 +451,7 @@ export default function About() {
           <span className="carousel-line" />
           <span>Desliza</span>
         </div>
-        <Carousel />
+        {photos && photos.length > 0 && <Carousel photos={photos} />}
       </section>
     </div>
   );
