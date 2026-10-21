@@ -4,12 +4,14 @@ import "./About.css";
 const disenio = "/disenio.png";
 const disenio2 = "/disenio_2.jpg";
 
-// Usá la misma base de API que ya usan tus otros componentes
-const API = import.meta.env.VITE_API_URL ?? "/api";
+// Base del backend. Funciona con VITE_API_URL = "https://api.sakufilms.com" o "https://api.sakufilms.com/api"
+const API_BASE = (import.meta.env.VITE_API_URL ?? "")
+  .replace(/\/+$/, "")
+  .replace(/\/api$/, "");
+const API = `${API_BASE}/api`;
 
 // Si el backend devuelve una ruta relativa (ej. "/uploads/foto.jpg"), se completa con el host del backend
-const API_ORIGIN = API.startsWith("http") ? new URL(API).origin : "";
-const resolveUrl = (url: string) => (url.startsWith("/") ? API_ORIGIN + url : url);
+const resolveUrl = (url: string) => (url.startsWith("/") ? API_BASE + url : url);
 
 // Respaldo: se usa solo si el backend no responde
 const carouselUrls = [
