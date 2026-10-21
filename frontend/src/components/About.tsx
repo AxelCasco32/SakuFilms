@@ -69,14 +69,19 @@ const altFromUrl = (url: string) => {
   return `Detrás de cámara: ${name}`;
 };
 
-type Photo = { src: string; alt: string };
+type Photo = { src: string; alt: string; destination: string };
 
-const toPhoto = (rawUrl: string): Photo => {
+const toPhoto = (rawUrl: string, destination = ""): Photo => {
   const url = resolveUrl(rawUrl);
-  return { src: optimize(url), alt: altFromUrl(url) };
+  const dest = destination.trim();
+  return {
+    src: optimize(url),
+    alt: dest ? `Detrás de cámara: ${dest}` : altFromUrl(url),
+    destination: dest,
+  };
 };
 
-const fallbackPhotos: Photo[] = carouselUrls.map(toPhoto);
+const fallbackPhotos: Photo[] = carouselUrls.map((url) => toPhoto(url));
 
 function useVisible<T extends HTMLElement>(threshold: number) {
   const ref = useRef<T>(null);
@@ -301,7 +306,7 @@ function Carousel({ photos }: { photos: Photo[] }) {
               decoding="async"
               draggable={false}
             />
-            <figcaption>{String((index % total) + 1).padStart(2, "0")}</figcaption>
+            {photo.destination && <figcaption>{photo.destination}</figcaption>}
           </figure>
         ))}
       </div>
@@ -328,8 +333,8 @@ export default function About() {
     let cancelled = false;
     fetch(`${API}/carousel`)
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error("carousel"))))
-      .then((data: { url: string }[]) => {
-        if (!cancelled) setPhotos(data.map((p) => toPhoto(p.url)));
+      .then((data: { url: string; destination?: string }[]) => {
+        if (!cancelled) setPhotos(data.map((p) => toPhoto(p.url, p.destination ?? "")));
       })
       .catch(() => {
         if (!cancelled) setPhotos(fallbackPhotos);
