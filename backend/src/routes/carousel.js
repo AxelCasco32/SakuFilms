@@ -58,15 +58,34 @@ carouselRouter.get('/', async (_req, res) => {
   }
 })
 
-// Admin: subir archivos ("photos") y/o pegar links ("imageUrls", uno por línea)
+// Admin: agregar fotos, cada una con su propio destino
+//   photos        -> archivos
+//   destinations  -> JSON ["Japón", "Grecia", ...] en el mismo orden que los archivos
+//   links         -> JSON [{ "url": "https://...", "destination": "Japón" }, ...]
+const parseJson = (value, fallback) => {
+  try {
+    return JSON.parse(value)
+  } catch {
+    return fallback
+  }
+}
+
 carouselRouter.post('/', requireAuth, upload.array('photos', 40), async (req, res) => {
   try {
-    const items = await Promise.all((req.files ?? []).map(saveFile))
+    const destinations = parseJson(req.body.destinations, [])
+    const links = parseJson(req.body.links, [])
 
-    String(req.body.imageUrls || '')
-      .split(/\s+/)
-      .filter((u) => /^https?:\/\//.test(u))
-      .forEach((url) => items.push({ url, publicId: '' }))
+    const saved = await Promise.all((req.files ?? []).map(saveFile))
+    const items = saved.map((file, i) => ({
+      ...file,
+      destination: String(destinations[i] ?? '').trim(),
+    }))
+
+    for (const link of Array.isArray(links) ? links : []) {
+      const url = String(link?.url ?? '').trim()
+      if (!/^https?:\/\/\S+$/.test(url)) continue
+      items.push({ url, publicId: '', destination: String(link?.destination ?? '').trim() })
+    }
 
     if (!items.length) return res.status(400).json({ error: 'No se recibieron fotos' })
 
@@ -77,6 +96,23 @@ carouselRouter.post('/', requireAuth, upload.array('photos', 40), async (req, re
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: 'Error al guardar las fotos' })
+  }
+})
+
+// Admin: cambiar el destino de una foto
+carouselRouter.put('/:id', requireAuth, async (req, res) => {
+  try {
+    const destination = String(req.body.destination ?? '').trim()
+    const photo = await CarouselPhoto.findByIdAndUpdate(
+      req.params.id,
+      { destination },
+      { new: true },
+    )
+    if (!photo) return res.status(404).json({ error: 'No encontrada' })
+    res.json(photo)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Error al guardar el destino' })
   }
 })
 

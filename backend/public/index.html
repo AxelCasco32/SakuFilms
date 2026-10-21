@@ -44,6 +44,9 @@
   .settings-msg { display:inline-block; margin-left:12px; font-size:0.85rem; }
   .settings-msg.ok { color:#2e7d32; }
   .settings-msg.err { color:#b33; }
+  .pending-item { display:flex; gap:10px; align-items:center; margin-bottom:10px; }
+  .pending-item input { margin:0; flex:1; }
+  .pending-item button { padding:6px 12px; }
 </style>
 </head>
 <body>
@@ -140,20 +143,31 @@
     <span id="settingsMsg" class="settings-msg"></span>
   </div>
 
-  <!-- NUEVO: Carrusel de Nosotros -->
+  <!-- Carrusel de Nosotros -->
   <div class="card">
     <h2>Carrusel de "Nosotros"</h2>
-    <p class="hint" style="margin-top:0;">Fotos de "Detrás de cada historia" en la página Nosotros. Al quitar una, deja de verse en el sitio.</p>
+    <p class="hint" style="margin-top:0;">Fotos de "Detrás de cada historia" en la página Nosotros. El destino se muestra junto a cada foto en el sitio.</p>
 
     <label>Fotos actuales <span id="carouselCount"></span></label>
-    <div class="kept-list" id="carouselList"></div>
+    <table id="carouselTable" style="margin-bottom:16px;">
+      <tbody></tbody>
+    </table>
 
-    <label>Agregar fotos (podés elegir varias)</label>
-    <input id="carouselFiles" type="file" accept="image/*" multiple />
-    <label>O pegar links (uno por línea)</label>
-    <textarea id="carouselUrls" placeholder="https://res.cloudinary.com/.../foto.jpg"></textarea>
+    <div class="section-box">
+      <label>Agregar fotos (podés elegir varias)</label>
+      <input id="carouselFiles" type="file" accept="image/*" multiple onchange="addPendingFiles(this)" />
 
-    <button id="carouselBtn" onclick="addCarouselPhotos()">Agregar al carrusel</button>
+      <label>O agregar por link</label>
+      <div class="pending-item">
+        <input id="carouselLink" placeholder="https://res.cloudinary.com/.../foto.jpg" />
+        <button type="button" onclick="addPendingLink()">Agregar link</button>
+      </div>
+
+      <div id="pendingList"></div>
+      <p class="hint" id="pendingHint">Cada foto que elijas aparece acá para que escribas dónde fue tomada.</p>
+
+      <button id="carouselBtn" onclick="addCarouselPhotos()">Guardar en el carrusel</button>
+    </div>
   </div>
 
   <div class="card">
@@ -485,7 +499,11 @@ async function saveSettings() {
   }
 }
 
-/* ───────── Carrusel Nosotros (NUEVO) ───────── */
+/* ───────── Carrusel Nosotros ───────── */
+
+function escAttr(v) {
+  return String(v).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
+}
 
 async function loadCarousel() {
   try {
@@ -493,24 +511,70 @@ async function loadCarousel() {
     if (!res.ok) return
     const photos = await res.json()
     document.getElementById('carouselCount').textContent = photos.length ? `(${photos.length})` : ''
-    document.getElementById('carouselList').innerHTML = photos
-      .map((p) => `<div class="kept"><img src="${p.url.replace('/upload/', '/upload/w_160,c_limit/')}" /><button type="button" onclick="deleteCarouselPhoto('${p._id}')" title="Quitar">×</button></div>`)
-      .join('')
+    document.querySelector('#carouselTable tbody').innerHTML = photos.map((p) => `
+      <tr>
+        <td style="width:70px;"><img class="thumb" src="${p.url.replace('/upload/', '/upload/w_160,c_limit/')}" /></td>
+        <td><input id="cd_${p._id}" value="${escAttr(p.destination || '')}" placeholder="Destino (ej. Japón)" style="margin:0;" /></td>
+        <td style="white-space:nowrap;">
+          <button onclick="saveCarouselDestination('${p._id}', this)">Guardar</button>
+          <button class="danger" onclick="deleteCarouselPhoto('${p._id}')">Quitar</button>
+        </td>
+      </tr>`).join('')
   } catch {}
 }
 
+// Fotos elegidas que todavía no se guardaron: { file | url, preview, destination }
+let pending = []
+
+function renderPending() {
+  document.getElementById('pendingList').innerHTML = pending.map((p, i) => `
+    <div class="pending-item">
+      <img class="thumb" src="${p.preview}" />
+      <input value="${escAttr(p.destination)}" placeholder="¿Dónde se sacó? (ej. Japón)" oninput="pending[${i}].destination = this.value" />
+      <button type="button" class="danger" onclick="removePending(${i})" title="Quitar">×</button>
+    </div>`).join('')
+  document.getElementById('pendingHint').style.display = pending.length ? 'none' : 'block'
+}
+
+function addPendingFiles(input) {
+  for (const file of input.files) {
+    pending.push({ file, preview: URL.createObjectURL(file), destination: '' })
+  }
+  input.value = ''
+  renderPending()
+}
+
+function addPendingLink() {
+  const input = document.getElementById('carouselLink')
+  const url = input.value.trim()
+  if (!/^https?:\/\/\S+$/.test(url)) { alert('Pegá un link válido (https://...)'); return }
+  pending.push({ url, preview: url.replace('/upload/', '/upload/w_160,c_limit/'), destination: '' })
+  input.value = ''
+  renderPending()
+}
+
+function removePending(i) {
+  if (pending[i].file) URL.revokeObjectURL(pending[i].preview)
+  pending.splice(i, 1)
+  renderPending()
+}
+
 async function addCarouselPhotos() {
-  const files = document.getElementById('carouselFiles').files
-  const urls = document.getElementById('carouselUrls').value
-  if (!files.length && !urls.trim()) { alert('Elegí fotos o pegá links'); return }
+  if (!pending.length) { alert('Elegí fotos o agregá links'); return }
+  const sinDestino = pending.filter((p) => !p.destination.trim()).length
+  if (sinDestino && !confirm(`Hay ${sinDestino} foto(s) sin destino. ¿Guardarlas igual?`)) return
+
+  const files = pending.filter((p) => p.file)
+  const links = pending.filter((p) => p.url)
 
   const fd = new FormData()
-  for (const f of files) fd.append('photos', f)
-  fd.append('imageUrls', urls)
+  files.forEach((p) => fd.append('photos', p.file))
+  fd.append('destinations', JSON.stringify(files.map((p) => p.destination.trim())))
+  fd.append('links', JSON.stringify(links.map((p) => ({ url: p.url, destination: p.destination.trim() }))))
 
   const btn = document.getElementById('carouselBtn')
   btn.disabled = true
-  btn.textContent = 'Subiendo…'
+  btn.textContent = 'Guardando…'
   try {
     const res = await fetch(API + '/carousel', { method: 'POST', headers: { Authorization: 'Bearer ' + token }, body: fd })
     if (!res.ok) {
@@ -518,14 +582,36 @@ async function addCarouselPhotos() {
       alert(data.error || 'Error al guardar')
       return
     }
-    document.getElementById('carouselFiles').value = ''
-    document.getElementById('carouselUrls').value = ''
+    files.forEach((p) => URL.revokeObjectURL(p.preview))
+    pending = []
+    renderPending()
     loadCarousel()
   } catch {
     alert('No se pudo conectar con el backend')
   } finally {
     btn.disabled = false
-    btn.textContent = 'Agregar al carrusel'
+    btn.textContent = 'Guardar en el carrusel'
+  }
+}
+
+async function saveCarouselDestination(id, btn) {
+  const destination = document.getElementById('cd_' + id).value
+  btn.disabled = true
+  try {
+    const res = await fetch(`${API}/carousel/${id}`, {
+      method: 'PUT', headers: headers(), body: JSON.stringify({ destination }),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      alert(data.error || 'Error al guardar el destino')
+      return
+    }
+    btn.textContent = '✓'
+    setTimeout(() => { btn.textContent = 'Guardar' }, 1200)
+  } catch {
+    alert('No se pudo conectar con el backend')
+  } finally {
+    btn.disabled = false
   }
 }
 
