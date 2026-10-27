@@ -8,6 +8,7 @@ export type Settings = {
   tiktok: string
   youtube: string
   vimeo: string
+  destinationImage: string
 }
 
 const EMPTY: Settings = {
@@ -18,6 +19,7 @@ const EMPTY: Settings = {
   tiktok: '',
   youtube: '',
   vimeo: '',
+  destinationImage: '',
 }
 
 // ADAPTAR: usá la misma variable de entorno que ya usás para llamar al backend
@@ -43,18 +45,27 @@ function load(): Promise<Settings> {
   return pending
 }
 
-export function useSettings(): Settings {
+// Igual que useSettings, pero avisa cuándo terminó de cargar (para no mostrar
+// primero un valor por defecto y después cambiarlo, ej. una imagen de fondo)
+export function useSettingsStatus(): { settings: Settings; loaded: boolean } {
   const [settings, setSettings] = useState<Settings>(cache ?? EMPTY)
+  const [loaded, setLoaded] = useState(cache !== null)
 
   useEffect(() => {
     let alive = true
     load().then((s) => {
-      if (alive) setSettings(s)
+      if (!alive) return
+      setSettings(s)
+      setLoaded(true)
     })
     return () => {
       alive = false
     }
   }, [])
 
-  return settings
+  return { settings, loaded }
+}
+
+export function useSettings(): Settings {
+  return useSettingsStatus().settings
 }

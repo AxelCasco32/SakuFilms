@@ -143,6 +143,24 @@
     <span id="settingsMsg" class="settings-msg"></span>
   </div>
 
+  <!-- Fondo de Destination Weddings -->
+  <div class="card">
+    <h2>Fondo de "Destination Weddings"</h2>
+    <p class="hint" style="margin-top:0;">Imagen de fondo de la sección "Wherever your story blooms". Si la dejás vacía, el sitio usa la imagen por defecto.</p>
+
+    <img id="destPreview" alt="" style="display:none; width:100%; max-height:260px; object-fit:cover; border-radius:6px; margin-bottom:12px;" />
+
+    <label>Subir imagen</label>
+    <input id="destFile" type="file" accept="image/*" />
+    <button id="destUploadBtn" onclick="uploadDestinationImage()">Subir y guardar</button>
+
+    <label style="display:block; margin-top:16px;">O pegar un link</label>
+    <input id="set_destinationImage" placeholder="https://res.cloudinary.com/.../foto.jpg" oninput="showDestPreview(this.value)" />
+    <button id="destSaveBtn" onclick="saveSettings('destMsg', 'destSaveBtn')">Guardar link</button>
+    <button class="danger" onclick="clearDestinationImage()">Usar imagen por defecto</button>
+    <span id="destMsg" class="settings-msg"></span>
+  </div>
+
   <!-- Carrusel de Nosotros -->
   <div class="card">
     <h2>Carrusel de "Nosotros"</h2>
@@ -451,12 +469,61 @@ async function deleteFilm(id) {
 
 /* ───────── Ajustes del sitio ───────── */
 
-const SETTINGS_FIELDS = ['whatsapp', 'whatsappMessage', 'instagram', 'facebook', 'tiktok', 'youtube', 'vimeo']
+const SETTINGS_FIELDS = ['whatsapp', 'whatsappMessage', 'instagram', 'facebook', 'tiktok', 'youtube', 'vimeo', 'destinationImage']
 
 function fillSettings(s) {
   SETTINGS_FIELDS.forEach((k) => {
     document.getElementById('set_' + k).value = s[k] || ''
   })
+  showDestPreview(s.destinationImage)
+}
+
+function showDestPreview(url) {
+  const img = document.getElementById('destPreview')
+  img.style.display = url ? 'block' : 'none'
+  if (url) img.src = url
+}
+
+async function uploadDestinationImage() {
+  const input = document.getElementById('destFile')
+  const msg = document.getElementById('destMsg')
+  if (!input.files[0]) return alert('Elegí una imagen primero')
+
+  const fd = new FormData()
+  fd.append('image', input.files[0])
+  const btn = document.getElementById('destUploadBtn')
+  btn.disabled = true
+  btn.textContent = 'Subiendo…'
+  msg.textContent = ''
+  msg.className = 'settings-msg'
+  try {
+    const res = await fetch(API + '/settings/destination-image', {
+      method: 'POST', headers: headers(false), body: fd,
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      msg.textContent = data.error || 'Error al subir'
+      msg.className = 'settings-msg err'
+      return
+    }
+    fillSettings(data)
+    input.value = ''
+    msg.textContent = 'Guardado ✓'
+    msg.className = 'settings-msg ok'
+  } catch {
+    msg.textContent = 'No se pudo conectar con el backend'
+    msg.className = 'settings-msg err'
+  } finally {
+    btn.disabled = false
+    btn.textContent = 'Subir y guardar'
+  }
+}
+
+function clearDestinationImage() {
+  if (!confirm('¿Volver a la imagen por defecto?')) return
+  document.getElementById('set_destinationImage').value = ''
+  showDestPreview('')
+  saveSettings('destMsg', 'destSaveBtn')
 }
 
 async function loadSettings() {
@@ -467,12 +534,13 @@ async function loadSettings() {
   } catch {}
 }
 
-async function saveSettings() {
+async function saveSettings(msgId = 'settingsMsg', btnId = 'settingsBtn') {
   const body = {}
   SETTINGS_FIELDS.forEach((k) => { body[k] = document.getElementById('set_' + k).value })
 
-  const btn = document.getElementById('settingsBtn')
-  const msg = document.getElementById('settingsMsg')
+  const btn = document.getElementById(btnId)
+  const msg = document.getElementById(msgId)
+  const label = btn.textContent
   btn.disabled = true
   btn.textContent = 'Guardando…'
   msg.textContent = ''
@@ -495,7 +563,7 @@ async function saveSettings() {
     msg.className = 'settings-msg err'
   } finally {
     btn.disabled = false
-    btn.textContent = 'Guardar ajustes'
+    btn.textContent = label
   }
 }
 
