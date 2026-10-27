@@ -2,6 +2,7 @@ import { Router } from 'express'
 import nodemailer from 'nodemailer'
 import { Contact } from '../models/Contact.js'
 import { requireAuth } from '../middleware/auth.js'
+import { asyncHandler } from '../middleware/asyncHandler.js'
 
 export const contactRouter = Router()
 
@@ -16,7 +17,7 @@ function getTransport() {
 }
 
 // Público: recibir consulta del formulario
-contactRouter.post('/', async (req, res) => {
+contactRouter.post('/', asyncHandler(async (req, res) => {
   const { nombre, pareja, email, whatsapp, fecha, lugar, cobertura, mensaje } = req.body
 
   if (!nombre || !email) {
@@ -49,17 +50,17 @@ Mensaje: ${mensaje}`,
   }
 
   res.status(201).json({ ok: true })
-})
+}))
 
 // Admin: listar consultas recibidas
-contactRouter.get('/', requireAuth, async (_req, res) => {
+contactRouter.get('/', requireAuth, asyncHandler(async (_req, res) => {
   const contacts = await Contact.find().sort({ createdAt: -1 })
   res.json(contacts)
-})
+}))
 
 // Admin: borrar una consulta
-contactRouter.delete('/:id', requireAuth, async (req, res) => {
+contactRouter.delete('/:id', requireAuth, asyncHandler(async (req, res) => {
   const deleted = await Contact.findByIdAndDelete(req.params.id)
   if (!deleted) return res.status(404).json({ error: 'No encontrado' })
   res.status(204).end()
-})
+}))

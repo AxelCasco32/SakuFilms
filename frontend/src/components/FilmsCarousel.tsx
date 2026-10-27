@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useScrollReveal } from '../hooks/useScrollReveal'
-import { useFilms, resolveImg } from '../hooks/useFilms'
+import { useFilms, resolveImg, filmCategories } from '../hooks/useFilms'
 import VideoModal from './VideoModal'
 
 const AUTOPLAY_INTERVAL_MS = 4000
@@ -268,7 +268,7 @@ export default function FilmsCarousel() {
                     marginBottom: '6px',
                   }}
                 >
-                  {film.category} · {film.year}
+                  {filmCategories(film)} · {film.year}
                 </div>
                 <div
                   style={{

@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
-    "create-admin": "node src/create-admin.js"
+    "create-admin": "node src/create-admin.js",
+    "seed:carousel": "node src/seedCarousel.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
