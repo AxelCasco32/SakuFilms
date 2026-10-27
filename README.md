@@ -103,8 +103,16 @@ Los archivos `.env` no se suben al repositorio. Hay que usar como plantilla los 
 
 ## Producción
 
-- **Backend**: se usa con `npm start` y `NODE_ENV=production`. En hostings con disco efímero (como Render) hay que definir `CLOUDINARY_URL`, porque si no las imágenes subidas se pierden en cada deploy.
-- **Frontend**: se hace `npm run build` con `VITE_API_URL` apuntando al backend público y se publica la carpeta `frontend/dist/`.
-- Los dominios `sakufilms.com`, `www.sakufilms.com` y `api.sakufilms.com` ya están permitidos por CORS en `backend/src/server.js`.
+El sitio está publicado así:
+
+| Parte | Plataforma | Dominio | Configuración |
+|---|---|---|---|
+| Frontend | Vercel | `sakufilms.com` | Root Directory `frontend` · Build `npm run build` · Output `dist` · variable `VITE_API_URL` |
+| Backend | Render | `api.sakufilms.com` | Root Directory `backend` · Build `npm install` · Start `npm start` · variables del `.env` |
+
+- Las dos plataformas vuelven a publicar solas cada vez que se sube un cambio a la rama conectada.
+- En Render hay que definir `NODE_ENV=production` y `CLOUDINARY_URL`. El disco de Render se borra en cada deploy, así que sin Cloudinary las imágenes subidas se pierden.
+- En Vercel, `VITE_API_URL` se lee al momento del build. Si se cambia, hay que volver a publicar (Redeploy).
+- Los dominios `sakufilms.com`, `www.sakufilms.com` y `api.sakufilms.com` ya están permitidos por CORS en `backend/src/server.js`. Para agregar otros (por ejemplo, las URLs de preview de Vercel), se usa `FRONTEND_URL` en Render.
 
 Documentación detallada del backend y de la API: [`backend/README.md`](backend/README.md).
