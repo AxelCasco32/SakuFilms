@@ -13,6 +13,8 @@ const settingsSchema = new mongoose.Schema(
     tiktok: { type: String, default: '' },
     youtube: { type: String, default: '' },
     vimeo: { type: String, default: '' },
+    // Fondo de la sección Destination Weddings (vacío = imagen por defecto del sitio)
+    destinationImage: { type: String, default: '' },
   },
   { timestamps: true }
 )

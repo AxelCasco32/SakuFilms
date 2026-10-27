@@ -6,7 +6,7 @@ Backend del sitio de SAKU FILMS hecho con **Node.js, Express y MongoDB**.
 
 1. **Proyectos (films y fotografía)**: se cargan desde el panel admin y aparecen en el carrusel del home.
 2. **Carrusel de "Nosotros"**: guarda las fotos con su destino (Japón, Grecia…) que muestra la sección About.
-3. **Ajustes del sitio**: WhatsApp y redes sociales, que el frontend usa en el footer y en el botón flotante.
+3. **Ajustes del sitio**: WhatsApp, redes sociales y el fondo de la sección Destination Weddings, que el frontend usa en el footer y en el botón flotante.
 4. **Formulario de contacto**: guarda las consultas en la base y, si hay SMTP configurado, también avisa por email.
 5. **Panel de administración** (`/admin`): login con usuario y contraseña para gestionar todo lo anterior.
 
@@ -120,6 +120,7 @@ Se abre en **http://localhost:4000/admin**, con el usuario de `ADMIN_USER` y la 
   - *Wedding Films* y/o *Trailers*: llevan link de YouTube. Si no se sube portada, se usa la miniatura del video.
   - *Wedding Photography*: va sola (no se combina con las otras) y lleva una galería de hasta 60 fotos, subidas o como URLs.
 - **Ajustes del sitio**: WhatsApp (solo dígitos, con código de país), mensaje predeterminado y redes sociales.
+- **Fondo de "Destination Weddings"**: subir una imagen o pegar un link; también se puede volver a la imagen por defecto.
 - **Carrusel de "Nosotros"**: subir fotos o pegar URLs, cada una con su destino.
 - **Consultas de contacto**: listado y borrado.
 
@@ -140,7 +141,8 @@ Las rutas marcadas con 🔒 requieren el header `Authorization: Bearer <token>`.
 | `PUT` | `/api/carousel/:id` 🔒 | Cambia el destino de una foto |
 | `DELETE` | `/api/carousel/:id` 🔒 | Quita una foto (y la borra de Cloudinary si se subió desde el panel) |
 | `GET` | `/api/settings` | WhatsApp y redes |
-| `PUT` | `/api/settings` 🔒 | Guarda WhatsApp y redes |
+| `PUT` | `/api/settings` 🔒 | Guarda WhatsApp, redes y `destinationImage` (URL; vacío = imagen por defecto) |
+| `POST` | `/api/settings/destination-image` 🔒 | Sube el fondo de Destination Weddings (archivo en `image`) |
 | `POST` | `/api/contact` | Recibe una consulta (`nombre` y `email` son obligatorios) |
 | `GET` | `/api/contact` 🔒 | Lista las consultas |
 | `DELETE` | `/api/contact/:id` 🔒 | Borra una consulta |

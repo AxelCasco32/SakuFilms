@@ -1,7 +1,14 @@
 import { useScrollReveal } from '../hooks/useScrollReveal'
+import { useSettingsStatus } from '../hooks/useSettings'
+import { resolveImg } from '../hooks/useFilms'
+
+// Se usa si no se cargó ninguna imagen desde el panel admin
+const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1532712938310-34cb3982ef74?w=1600&h=900&fit=crop&auto=format'
 
 export default function Destination() {
   const ref = useScrollReveal<HTMLDivElement>()
+  const { settings, loaded } = useSettingsStatus()
+  const image = settings.destinationImage ? resolveImg(settings.destinationImage) : DEFAULT_IMAGE
 
   return (
     <section
@@ -12,16 +19,18 @@ export default function Destination() {
         backgroundColor: '#DDB4AB',
       }}
     >
-      <img
-        src="https://images.unsplash.com/photo-1532712938310-34cb3982ef74?w=1600&h=900&fit=crop&auto=format"
-        alt="Destination wedding — couple on a hilltop landscape"
-        style={{
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          objectPosition: 'center 30%',
-        }}
-      />
+      {loaded && (
+        <img
+          src={image}
+          alt="Destination wedding — couple on a hilltop landscape"
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center 30%',
+          }}
+        />
+      )}
       <div
         style={{
           position: 'absolute',
@@ -82,7 +91,7 @@ export default function Destination() {
           Tu historia, en cualquier destino.
         </p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '44px' }}>
-          {['Buenos Aires', 'Mendoza', 'Patagonia', 'Uruguay', 'Europa', 'Japón'].map((d) => (
+          {['Buenos Aires', 'Mendoza', 'Patagonia', 'Uruguay', 'Europa'].map((d) => (
             <span
               key={d}
               style={{

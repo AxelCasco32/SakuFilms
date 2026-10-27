@@ -149,7 +149,7 @@ function WordReveal({
         <span
           className="word"
           key={`${word}-${index}`}
-          style={{ transitionDelay: `${index * 38}ms` }}
+          style={{ transitionDelay: `${index * 18}ms` }}
         >
           {word}&nbsp;
         </span>
