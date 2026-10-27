@@ -90,6 +90,14 @@ app.use((err, _req, res, _next) => {
   if (err.message === 'Origen no permitido por CORS') {
     return res.status(403).json({ error: err.message })
   }
+  // Archivo demasiado grande, demasiados archivos o que no es imagen
+  if (err.name === 'MulterError' || err.message === 'Solo se permiten imágenes') {
+    return res.status(400).json({ error: err.message })
+  }
+  // Id con formato inválido (ej. /api/films/abc)
+  if (err.name === 'CastError') {
+    return res.status(404).json({ error: 'No encontrado' })
+  }
   console.error(err)
   res.status(500).json({ error: 'Error interno del servidor' })
 })

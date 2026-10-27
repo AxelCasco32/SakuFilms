@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url'
 import { v2 as cloudinary } from 'cloudinary'
 import { Film, FILM_CATEGORIES, PHOTO_CATEGORY } from '../models/Film.js'
 import { requireAuth } from '../middleware/auth.js'
+import { asyncHandler } from '../middleware/asyncHandler.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const uploadsDir = path.join(__dirname, '..', '..', 'uploads')
@@ -95,15 +96,15 @@ filmsRouter.get('/categories', (_req, res) => {
 
 // Público: listar proyectos, ordenados por "position".
 // El carousel del home usa solo los de type "video"; la galería usa todos.
-filmsRouter.get('/', async (_req, res) => {
+filmsRouter.get('/', asyncHandler(async (_req, res) => {
   const films = await Film.find().sort({ position: 1, createdAt: 1 })
   res.json(films)
-})
+}))
 
 // Admin: crear (multipart/form-data)
 //   campos: couple, location, year, position, categories, videoUrl, imageUrls
 //   archivos: image (portada), photos (galería)
-filmsRouter.post('/', requireAuth, uploadFields, async (req, res) => {
+filmsRouter.post('/', requireAuth, uploadFields, asyncHandler(async (req, res) => {
   const { couple, location = '', year = '', position, videoUrl = '' } = req.body
   const categories = toList(req.body.categories ?? req.body.category, /,/)
   const isPhoto = categories.includes(PHOTO_CATEGORY)
@@ -130,11 +131,11 @@ filmsRouter.post('/', requireAuth, uploadFields, async (req, res) => {
     position: Number(position) || 0,
   })
   res.status(201).json(film)
-})
+}))
 
 // Admin: editar
 //   keepImages: fotos actuales que se conservan (JSON o texto). Si no se envía, se conservan todas.
-filmsRouter.put('/:id', requireAuth, uploadFields, async (req, res) => {
+filmsRouter.put('/:id', requireAuth, uploadFields, asyncHandler(async (req, res) => {
   const existing = await Film.findById(req.params.id)
   if (!existing) return res.status(404).json({ error: 'No encontrado' })
 
@@ -168,11 +169,11 @@ filmsRouter.put('/:id', requireAuth, uploadFields, async (req, res) => {
   await existing.save()
 
   res.json(existing)
-})
+}))
 
 // Admin: borrar
-filmsRouter.delete('/:id', requireAuth, async (req, res) => {
+filmsRouter.delete('/:id', requireAuth, asyncHandler(async (req, res) => {
   const deleted = await Film.findByIdAndDelete(req.params.id)
   if (!deleted) return res.status(404).json({ error: 'No encontrado' })
   res.status(204).end()
-})
+}))

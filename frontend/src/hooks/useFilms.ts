@@ -7,7 +7,9 @@ export type Film = {
   id?: string | number
   couple: string
   location: string
-  category: string
+  // El backend devuelve un array (un proyecto puede estar en varias categorías)
+  categories: string[]
+  type?: 'video' | 'photography'
   year: string
   img: string
   videoUrl?: string
@@ -16,12 +18,16 @@ export type Film = {
 
 // Placeholders de respaldo: se usan si el backend todavía no tiene films cargados o no está corriendo.
 const FALLBACK_FILMS: Film[] = [
-  { id: '01', couple: 'Lucía & Mateo', location: 'Buenos Aires', category: 'Wedding Films', year: '2024', img: 'https://images.unsplash.com/photo-1606216794050-6ff7db8cb43d?w=800&h=1000&fit=crop&auto=format', videoUrl: '' },
-  { id: '02', couple: 'Emma & Julián', location: 'Mendoza', category: 'Trailers', year: '2024', img: 'https://images.unsplash.com/photo-1600270237614-d20aef1c8b14?w=800&h=1000&fit=crop&auto=format', videoUrl: '' },
-  { id: '03', couple: 'Sofía & Tomás', location: 'Bariloche', category: 'Destination Weddings', year: '2023', img: 'https://images.unsplash.com/photo-1607190074257-dd4b7af0309f?w=800&h=1000&fit=crop&auto=format', videoUrl: '' },
-  { id: '04', couple: 'Clara & Martín', location: 'Tigre', category: 'Highlights', year: '2023', img: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=800&h=1000&fit=crop&auto=format', videoUrl: '' },
-  { id: '05', couple: 'Ana & Lucas', location: 'Uruguay', category: 'Destination Weddings', year: '2024', img: 'https://images.unsplash.com/photo-1721635513002-287a3a3b2fa1?w=800&h=1000&fit=crop&auto=format', videoUrl: '' },
+  { id: '01', couple: 'Lucía & Mateo', location: 'Buenos Aires', categories: ['Wedding Films'], year: '2024', img: 'https://images.unsplash.com/photo-1606216794050-6ff7db8cb43d?w=800&h=1000&fit=crop&auto=format', videoUrl: '' },
+  { id: '02', couple: 'Emma & Julián', location: 'Mendoza', categories: ['Trailers'], year: '2024', img: 'https://images.unsplash.com/photo-1600270237614-d20aef1c8b14?w=800&h=1000&fit=crop&auto=format', videoUrl: '' },
+  { id: '03', couple: 'Sofía & Tomás', location: 'Bariloche', categories: ['Wedding Films'], year: '2023', img: 'https://images.unsplash.com/photo-1607190074257-dd4b7af0309f?w=800&h=1000&fit=crop&auto=format', videoUrl: '' },
+  { id: '04', couple: 'Clara & Martín', location: 'Tigre', categories: ['Trailers'], year: '2023', img: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=800&h=1000&fit=crop&auto=format', videoUrl: '' },
+  { id: '05', couple: 'Ana & Lucas', location: 'Uruguay', categories: ['Wedding Films'], year: '2024', img: 'https://images.unsplash.com/photo-1721635513002-287a3a3b2fa1?w=800&h=1000&fit=crop&auto=format', videoUrl: '' },
 ]
+
+export function filmCategories(film: Film) {
+  return (film.categories ?? []).join(' · ')
+}
 
 export function resolveImg(img: string) {
   return img.startsWith('/uploads') ? `${API_URL}${img}` : img
@@ -39,7 +45,11 @@ export function useFilms() {
   useEffect(() => {
     fetch(`${API_URL}/api/films`)
       .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then((data: Film[]) => { if (data.length > 0) setFilms(data) })
+      .then((data: Film[]) => {
+        // El carousel solo muestra videos; Wedding Photography se ve en la galería
+        const videos = data.filter((film) => film.type !== 'photography')
+        if (videos.length > 0) setFilms(videos)
+      })
       .catch(() => { /* sin conexión al backend: se mantienen los placeholders */ })
       .finally(() => setLoaded(true))
   }, [])

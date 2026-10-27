@@ -1,23 +1,23 @@
 # SAKU FILMS — Backend
 
-Backend en **Node.js + Express + MongoDB** para el sitio de SAKU FILMS.
+Backend del sitio de SAKU FILMS hecho con **Node.js, Express y MongoDB**.
 
 ## ¿Qué hace?
 
-1. **Formulario de contacto**: recibe las consultas del sitio, las guarda en la base de datos y opcionalmente avisa por email.
-2. **Films del carousel y de la sección Films**: un mismo panel de administración carga cada proyecto (pareja, ubicación, categoría, año, imagen y link de YouTube) y ese proyecto aparece automáticamente:
-   - en el carousel del home, y
-   - en la grilla de la sección Films, ya filtrado por su categoría.
-3. **Panel de administración** (`/admin`): login con usuario/contraseña, alta/edición/borrado de films, click en la imagen para reproducir el video de YouTube cargado, y listado de las consultas de contacto recibidas.
+1. **Proyectos (films y fotografía)**: se cargan desde el panel admin y aparecen en el carrusel del home.
+2. **Carrusel de "Nosotros"**: guarda las fotos con su destino (Japón, Grecia…) que muestra la sección About.
+3. **Ajustes del sitio**: WhatsApp y redes sociales, que el frontend usa en el footer y en el botón flotante.
+4. **Formulario de contacto**: guarda las consultas en la base y, si hay SMTP configurado, también avisa por email.
+5. **Panel de administración** (`/admin`): login con usuario y contraseña para gestionar todo lo anterior.
 
 ## 1. Requisitos
 
 - Node.js 18 o superior (`node -v`).
-- MongoDB. Dos opciones, elegí una:
-  - **Local**: instalar MongoDB Community Server en tu máquina.
-  - **En la nube (más simple, gratis)**: crear un cluster gratuito en [MongoDB Atlas](https://www.mongodb.com/atlas) y usar su cadena de conexión.
+- MongoDB, con una de estas dos opciones:
+  - **Local**: instalar MongoDB Community Server.
+  - **En la nube (más simple y gratis)**: un cluster de [MongoDB Atlas](https://www.mongodb.com/atlas).
 
-## 2. Instalar MongoDB local (opción A)
+### Opción A: MongoDB local
 
 En Ubuntu/Debian:
 
@@ -27,62 +27,57 @@ sudo systemctl start mongod
 sudo systemctl enable mongod
 ```
 
-En Windows/Mac, descargá el instalador desde mongodb.com/try/download/community y seguí el asistente. Una vez instalado, el servicio queda escuchando en `mongodb://127.0.0.1:27017` por defecto — no hace falta crear la base ni las colecciones a mano, Mongoose las crea solas la primera vez que se usan.
+En Windows o Mac se usa el instalador de mongodb.com/try/download/community. El servicio queda escuchando en `mongodb://127.0.0.1:27017`. No hace falta crear la base ni las colecciones, porque Mongoose las crea solas.
 
-## 3. O usar MongoDB Atlas (opción B, sin instalar nada)
+### Opción B: MongoDB Atlas
 
-1. Creá una cuenta gratis en https://www.mongodb.com/atlas
-2. Creá un cluster gratuito (M0).
-3. En "Database Access" creá un usuario y contraseña.
-4. En "Network Access" agregá tu IP (o `0.0.0.0/0` mientras desarrollás).
-5. Copiá el "Connection String" (algo como `mongodb+srv://usuario:password@cluster0.xxxxx.mongodb.net/`).
+1. Crear una cuenta gratis en https://www.mongodb.com/atlas
+2. Crear un cluster gratuito (M0).
+3. En "Database Access", crear un usuario y una contraseña.
+4. En "Network Access", agregar tu IP (o `0.0.0.0/0` mientras desarrollás).
+5. Copiar el "Connection String" (algo como `mongodb+srv://usuario:password@cluster0.xxxxx.mongodb.net/`).
 
-## 4. Instalación del proyecto
+> `src/db.js` usa los DNS 8.8.8.8 y 1.1.1.1 para que las direcciones `mongodb+srv://` de Atlas resuelvan bien en redes con DNS problemáticos.
 
-Descomprimí esta carpeta `backend/` **al lado** de la carpeta del frontend:
-
-```
-tu-proyecto/
-  saku-films-design/   <- el frontend
-  backend/             <- esto
-```
+## 2. Instalación
 
 ```bash
 cd backend
 npm install
-```
-
-## 5. Configurar variables de entorno
-
-```bash
 cp .env.example .env
 ```
 
-Completá en `.env`:
+## 3. Variables de entorno (`.env`)
 
-- `MONGODB_URI`: `mongodb://127.0.0.1:27017/saku_films` si usás Mongo local, o tu connection string de Atlas (agregándole `/saku_films` al final, antes de los `?`).
-- `JWT_SECRET`: cualquier texto largo y random. Podés generarlo con `openssl rand -hex 32`.
-- `FRONTEND_URL`: `http://localhost:5173` mientras desarrollás.
+| Variable | Obligatoria | Descripción |
+|---|---|---|
+| `MONGODB_URI` | Sí | `mongodb://127.0.0.1:27017/saku_films`, o el connection string de Atlas con `/saku_films` agregado antes del `?` |
+| `JWT_SECRET` | Sí | Texto largo y random. Se puede generar con `openssl rand -hex 32` |
+| `ADMIN_USER` | Sí | Usuario del panel (por ejemplo `admin`) |
+| `ADMIN_PASSWORD_HASH` | Sí | Hash de la contraseña, generado en el paso 4 |
+| `FRONTEND_URL` | No | Orígenes extra permitidos por CORS, separados por coma y sin `/` al final |
+| `NODE_ENV` | No | Con `production`, deja de aceptar cualquier `localhost` o IP local en CORS |
+| `PORT` | No | Por defecto `4000` |
+| `CLOUDINARY_URL` | No | `cloudinary://API_KEY:API_SECRET@CLOUD_NAME`. Si está definida, las imágenes se suben a Cloudinary; si no, se guardan en `uploads/` |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `CONTACT_TO_EMAIL` | No | Aviso por email de cada consulta (ver paso 5) |
 
-## 6. Crear la contraseña del panel admin
+## 4. Crear la contraseña del panel admin
 
-**Importante**: este campo tiene que llevar un *hash* generado por el comando, nunca la contraseña en texto plano.
+**Importante**: `ADMIN_PASSWORD_HASH` tiene que llevar un *hash*, nunca la contraseña en texto plano.
 
 ```bash
 npm run create-admin
 ```
 
-Te va a pedir una contraseña y te va a devolver una línea como:
+El comando pide una contraseña y devuelve una línea como esta:
 
 ```
 ADMIN_PASSWORD_HASH=$2a$10$xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
-Pegá esa línea completa en tu `.env`, reemplazando la que está vacía.
+Esa línea se pega completa en `.env`.
 
-## 7. (Opcional) Email al recibir una consulta
-
-En `.env`:
+## 5. (Opcional) Email al recibir una consulta
 
 ```
 SMTP_HOST=smtp.gmail.com
@@ -92,15 +87,16 @@ SMTP_PASS=una_contraseña_de_aplicación_de_gmail
 CONTACT_TO_EMAIL=donde_querés_recibir_los_avisos@gmail.com
 ```
 
-Si usás Gmail, generá una "Contraseña de aplicación" en la configuración de seguridad de Google (no tu contraseña normal). Si dejás esto vacío, las consultas se guardan igual en la base — simplemente no llega el mail, y las ves en `/admin`.
+Con Gmail hay que usar una "Contraseña de aplicación" de la configuración de seguridad de Google, no la contraseña normal. Sin SMTP, las consultas se guardan igual y se ven en `/admin`.
 
-## 8. Correr el backend
+## 6. Correr el backend
 
 ```bash
-npm run dev
+npm run dev       # desarrollo, con recarga automática
+npm start         # producción
 ```
 
-Deberías ver:
+Si todo está bien, se ve esto:
 
 ```
 ✅ Conectado a MongoDB
@@ -108,63 +104,85 @@ Deberías ver:
    Panel admin: http://localhost:4000/admin
 ```
 
-Si en cambio ves `❌ No se pudo conectar a MongoDB`, revisá que el servicio de Mongo esté corriendo (`sudo systemctl status mongod`) o que el connection string de Atlas sea correcto.
+Si aparece `❌ No se pudo conectar a MongoDB`, hay que revisar que Mongo esté corriendo (`sudo systemctl status mongod`) o que el connection string de Atlas sea correcto.
 
-## 9. Correr el frontend (otra terminal)
+Para cargar las fotos iniciales del carrusel de "Nosotros" (el comando no duplica las que ya existen):
 
 ```bash
-cd ../saku-films-design
-npm install
-npm run dev
+npm run seed:carousel
 ```
 
-Se abre en `http://localhost:5173`, ya conectado al backend.
+## 7. Panel admin
 
-## 10. Usar el panel admin
+Se abre en **http://localhost:4000/admin**, con el usuario de `ADMIN_USER` y la contraseña del paso 4. La sesión dura 12 horas.
 
-**http://localhost:4000/admin**
+- **Proyectos**: nombre de la pareja o título, ubicación, año, orden y categorías.
+  - *Wedding Films* y/o *Trailers*: llevan link de YouTube. Si no se sube portada, se usa la miniatura del video.
+  - *Wedding Photography*: va sola (no se combina con las otras) y lleva una galería de hasta 60 fotos, subidas o como URLs.
+- **Ajustes del sitio**: WhatsApp (solo dígitos, con código de país), mensaje predeterminado y redes sociales.
+- **Carrusel de "Nosotros"**: subir fotos o pegar URLs, cada una con su destino.
+- **Consultas de contacto**: listado y borrado.
 
-- Usuario: el de `ADMIN_USER` (por defecto `admin`)
-- Contraseña: la que elegiste en el paso 6
+## 8. API
 
-Desde ahí:
-- Cargás un film con pareja, ubicación, **categoría** (Wedding Films / Trailers / Highlights / Destination Weddings), año, imagen y el **link de YouTube** del video.
-- Ese mismo film aparece automáticamente en el carousel del home y en la grilla de la sección Films, ya filtrado por su categoría — es un solo lugar de carga para las dos secciones.
-- Haciendo click en la miniatura de la tabla, se abre un reproductor con el video de YouTube cargado.
-- También podés ver y borrar las consultas de contacto recibidas.
+Las rutas marcadas con 🔒 requieren el header `Authorization: Bearer <token>`.
 
-## 11. Cambios hechos en el frontend para conectar todo esto
+| Método | Ruta | Descripción |
+|---|---|---|
+| `POST` | `/api/auth/login` | `{ user, password }` → `{ token }` |
+| `GET` | `/api/films` | Lista los proyectos ordenados por `position` |
+| `GET` | `/api/films/categories` | Categorías válidas |
+| `POST` | `/api/films` 🔒 | Crea un proyecto (`multipart/form-data`) |
+| `PUT` | `/api/films/:id` 🔒 | Edita un proyecto (`keepImages` = fotos de la galería que se conservan) |
+| `DELETE` | `/api/films/:id` 🔒 | Borra un proyecto |
+| `GET` | `/api/carousel` | Fotos del carrusel de "Nosotros" |
+| `POST` | `/api/carousel` 🔒 | Agrega fotos: archivos en `photos`, más `destinations` y `links` en JSON |
+| `PUT` | `/api/carousel/:id` 🔒 | Cambia el destino de una foto |
+| `DELETE` | `/api/carousel/:id` 🔒 | Quita una foto (y la borra de Cloudinary si se subió desde el panel) |
+| `GET` | `/api/settings` | WhatsApp y redes |
+| `PUT` | `/api/settings` 🔒 | Guarda WhatsApp y redes |
+| `POST` | `/api/contact` | Recibe una consulta (`nombre` y `email` son obligatorios) |
+| `GET` | `/api/contact` 🔒 | Lista las consultas |
+| `DELETE` | `/api/contact/:id` 🔒 | Borra una consulta |
+| `GET` | `/api/health` | `{ ok: true }` |
 
-- `Contact.tsx`: el formulario ahora hace `POST` real a `/api/contact` en vez de no hacer nada.
-- `hooks/useFilms.ts`: hook que trae los films desde el backend (con placeholders de respaldo si el backend no está corriendo). Lo usan tanto el carousel como la sección Films, así quedan sincronizados.
-- `FilmsCarousel.tsx`: ahora avanza solo cada 4 segundos (se pausa al pasar el mouse), las imágenes se muestran en blanco y negro y pasan a color al hacer hover, y al hacer click se abre el video de YouTube del proyecto.
-- `Films.tsx`: la grilla categorizada ahora lee los mismos films del backend (antes tenía su propia lista separada) y también abre el video al hacer click.
-- `components/VideoModal.tsx`: modal compartido que convierte cualquier link de YouTube (watch, youtu.be, shorts) en el reproductor embebido.
+Campos de un proyecto (`POST`/`PUT /api/films`):
 
-## 12. Notas para producción
+- `couple`, `location`, `year`, `position`.
+- `categories`: separadas por coma o en JSON.
+- `videoUrl`.
+- `img` (URL de portada) o un archivo en `image`.
+- `photos` (archivos) o `imageUrls` (URLs).
 
-- Cambiá `FRONTEND_URL` en `.env` por el dominio real del sitio.
-- Cambiá `VITE_API_URL` en el frontend por la URL pública del backend (ej: `https://api.sakufilms.com`).
-- La carpeta `uploads/` (imágenes subidas) debe persistir entre reinicios del servidor: en hostings con disco efímero (Render, Railway free tier) necesitás un volumen persistente, o migrar a un storage externo (S3, Cloudinary).
-- Para Mongo en producción, usá Atlas (o un servidor propio) — no dependas de una instancia local del servidor.
-- Corré el backend con un gestor de procesos (`pm2`, o el servicio systemd del servidor) en vez de `npm run dev`, usando `npm start`.
+Las imágenes pueden pesar hasta 15 MB cada una.
 
-## Estructura del proyecto
+## 9. Producción
+
+- Usar `NODE_ENV=production` y correr con `npm start` (bajo `pm2`, systemd o el hosting).
+- En hostings con disco efímero (Render, Railway) hay que definir `CLOUDINARY_URL`; si no, las imágenes de `uploads/` se pierden en cada deploy.
+- Para la base, usar Atlas o un servidor propio, nunca una instancia local.
+- En el frontend, `VITE_API_URL` tiene que apuntar a la URL pública del backend (por ejemplo `https://api.sakufilms.com`).
+- Los orígenes `sakufilms.com`, `www.sakufilms.com` y `api.sakufilms.com` ya están permitidos en `src/server.js`. Para agregar otros se usa `FRONTEND_URL`.
+
+## Estructura
 
 ```
 backend/
   src/
-    server.js          -> arranca Express, conecta a Mongo, monta las rutas
-    db.js               -> conexión a MongoDB (Mongoose)
-    create-admin.js     -> script para generar el hash de contraseña
+    server.js              arranca Express, CORS, rutas y manejo de errores
+    db.js                  conexión a MongoDB
+    create-admin.js        genera el hash de la contraseña del admin
+    seedCarousel.js        carga las fotos iniciales del carrusel de "Nosotros"
+    middleware/
+      auth.js              valida el token JWT
+      asyncHandler.js      pasa los errores de las rutas async al manejador de errores
     models/
-      Film.js            -> esquema de Mongoose de un film (incluye categoría y videoUrl)
-      Contact.js          -> esquema de Mongoose de una consulta de contacto
-    middleware/auth.js  -> valida el token JWT en rutas protegidas
+      Film.js              proyecto: categorías, portada, galería y video
+      CarouselPhoto.js     foto del carrusel con su destino
+      Settings.js          WhatsApp y redes (un único documento)
+      Contact.js           consulta del formulario
     routes/
-      auth.js             -> POST /api/auth/login
-      films.js            -> GET/POST/PUT/DELETE /api/films, GET /api/films/categories
-      contact.js          -> POST/GET/DELETE /api/contact
-  public/index.html      -> panel admin (servido en /admin), con reproductor de YouTube
-  uploads/                -> imágenes subidas de los films
+      auth.js  films.js  carousel.js  settings.js  contact.js
+  public/index.html        panel admin (servido en /admin)
+  uploads/                 imágenes subidas en local (no se versionan)
 ```
