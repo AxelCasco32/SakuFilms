@@ -73,11 +73,12 @@ function youtubeId(url = '') {
 }
 
 function validateFilm({ couple, categories, videoUrl, img, images }) {
-  if (!couple) return 'Falta el nombre o título'
   if (categories.length === 0) return 'Elegí al menos una categoría'
   if (categories.some((c) => !FILM_CATEGORIES.includes(c))) return 'Categoría inválida'
 
   const isPhoto = categories.includes(PHOTO_CATEGORY)
+  // En Wedding Photography el nombre es opcional
+  if (!couple && !isPhoto) return 'Falta el nombre o título'
   if (isPhoto && categories.length > 1) {
     return 'Wedding Photography no se puede combinar con Wedding Films o Trailers'
   }
@@ -105,7 +106,7 @@ filmsRouter.get('/', asyncHandler(async (_req, res) => {
 //   campos: couple, location, year, position, categories, videoUrl, imageUrls
 //   archivos: image (portada), photos (galería)
 filmsRouter.post('/', requireAuth, uploadFields, asyncHandler(async (req, res) => {
-  const { couple, location = '', year = '', position, videoUrl = '' } = req.body
+  const { couple = '', location = '', year = '', position, videoUrl = '' } = req.body
   const categories = toList(req.body.categories ?? req.body.category, /,/)
   const isPhoto = categories.includes(PHOTO_CATEGORY)
 

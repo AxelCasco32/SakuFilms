@@ -491,7 +491,7 @@
 
     <div class="step">
       <div class="step-title"><i>2</i>Datos</div>
-      <label class="field"><span>Pareja o título *</span><input id="couple" placeholder="Lucía & Mateo" /></label>
+      <label class="field"><span id="coupleLabel">Pareja o título *</span><input id="couple" placeholder="Lucía & Mateo" /></label>
       <div class="grid-2">
         <label class="field"><span>Ubicación</span><input id="location" placeholder="Buenos Aires" /></label>
         <label class="field"><span>Año</span><input id="year" inputmode="numeric" placeholder="2025" /></label>
@@ -790,7 +790,7 @@ function renderFilms() {
         ${photo ? '' : `<button class="play" onclick="openVideo('${f._id}')" aria-label="Ver video"><span><svg width="20" height="20" style="color:var(--brand)"><use href="#i-play"/></svg></span></button>`}
       </div>
       <div class="film-body">
-        <h3>${esc(f.couple)}</h3>
+        <h3>${f.couple ? esc(f.couple) : '<span style="color:var(--muted);font-weight:500">Sin título</span>'}</h3>
         ${meta ? `<div class="meta">${meta}</div>` : ''}
         <div class="chips">${filmCats(f).map((c) => `<span class="chip">${esc(c)}</span>`).join('')}</div>
         <div class="film-actions">
@@ -804,7 +804,7 @@ function renderFilms() {
 
 async function deleteFilm(id) {
   const f = filmsById[id]
-  if (!await confirmDialog('¿Borrar este proyecto?', `"${f?.couple || ''}" se va a quitar del sitio. No se puede deshacer.`)) return
+  if (!await confirmDialog('¿Borrar este proyecto?', `"${f?.couple || 'Sin título'}" se va a quitar del sitio. No se puede deshacer.`)) return
   try {
     await api(`/films/${id}`, { method: 'DELETE' })
     toast('Proyecto borrado')
@@ -827,6 +827,8 @@ function renderVideoCats(selected) {
 
 function syncKind() {
   const photo = currentKind() === 'photo'
+  $('coupleLabel').textContent = photo ? 'Pareja o título (opcional)' : 'Pareja o título *'
+  if (photo) $('couple').classList.remove('invalid')
   $('videoCats').hidden = photo
   $('videoFields').hidden = photo
   $('photoFields').hidden = !photo
@@ -943,8 +945,8 @@ async function saveFilm() {
   const linkList = $('imageUrls').value.split(/\s+/).filter(Boolean)
 
   // Validaciones antes de enviar, con mensajes claros
-  $('couple').classList.toggle('invalid', !couple)
-  if (!couple) { $('couple').focus(); return toast('Falta el nombre de la pareja o el título', 'err') }
+  $('couple').classList.toggle('invalid', !couple && !photo)
+  if (!couple && !photo) { $('couple').focus(); return toast('Falta el nombre de la pareja o el título', 'err') }
   if (!cats.length) return toast('Elegí Wedding Films, Trailers o ambas', 'err')
   if (!photo && !youtubeId($('videoUrl').value)) { $('videoUrl').focus(); return toast('Pegá un link de YouTube válido', 'err') }
   if (photo && !keptImages.length && !newPhotos.length && !linkList.length) return toast('Agregá al menos una foto', 'err')

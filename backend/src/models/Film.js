@@ -6,8 +6,16 @@ export const PHOTO_CATEGORY = 'Wedding Photography'
 
 const filmSchema = new mongoose.Schema(
   {
-    // Nombre de la pareja o título del proyecto
-    couple: { type: String, required: true, trim: true },
+    // Nombre de la pareja o título del proyecto.
+    // Obligatorio salvo en Wedding Photography, donde puede quedar vacío
+    couple: {
+      type: String,
+      trim: true,
+      default: '',
+      required() {
+        return !this.categories?.includes(PHOTO_CATEGORY)
+      },
+    },
     location: { type: String, default: '', trim: true },
     year: { type: String, default: '', trim: true },
     // Un proyecto puede estar en varias categorías de video (ej: Wedding Films + Trailers).
