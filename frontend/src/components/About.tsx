@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import "./About.css";
 
-const disenio = "/disenio.png";
+const disenio = "https://res.cloudinary.com/ex91suxd/image/upload/v1793756618/Main_Foto.webp";
 const disenio2 = "/disenio_2.jpg";
 
 // Base del backend. Funciona con VITE_API_URL = "https://api.sakufilms.com" o "https://api.sakufilms.com/api"
