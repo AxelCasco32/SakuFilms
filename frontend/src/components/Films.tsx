@@ -105,7 +105,7 @@ function fromBackend(film: Film): PortfolioProject {
   const ytId = youtubeId(film.videoUrl)
   return {
     id: String(film._id ?? film.id),
-    names: film.couple,
+    names: film.couple ?? '',
     location: film.location,
     year: film.year,
     categories: film.categories.filter((c): c is Exclude<Filter, 'Todos'> => FILTER_CATEGORIES.includes(c as never)),
@@ -242,7 +242,7 @@ function PhotoLightbox({
       className="viewer photo-viewer"
       role="dialog"
       aria-modal="true"
-      aria-label={`Fotografías de ${project.names}`}
+      aria-label={project.names ? `Fotografías de ${project.names}` : 'Fotografías'}
       onTouchStart={(event) => {
         touchStart.current = event.touches[0].clientX
       }}
@@ -260,7 +260,7 @@ function PhotoLightbox({
         </button>
       </div>
       <div className="photo-stage">
-        <img key={images[index]} src={images[index]} alt={`${project.names}, fotografía ${index + 1}`} />
+        <img key={images[index]} src={images[index]} alt={`${project.names || 'Wedding Photography'}, fotografía ${index + 1}`} />
       </div>
       <button className="viewer-arrow arrow-left" onClick={previous} aria-label="Fotografía anterior">
         <ArrowIcon direction="left" />
@@ -270,7 +270,7 @@ function PhotoLightbox({
       </button>
       <div className="viewer-caption photo-caption">
         <p>Wedding Photography</p>
-        <h3>{project.names}</h3>
+        {project.names && <h3>{project.names}</h3>}
         <span>{metaOf(project)}</span>
       </div>
     </div>
@@ -291,10 +291,10 @@ function ProjectCard({
 
   return (
     <article className={`project-card project-${project.size}`}>
-      <button className="project-trigger" onClick={() => onOpen(project)} aria-label={`${action}: ${project.names}`}>
+      <button className="project-trigger" onClick={() => onOpen(project)} aria-label={project.names ? `${action}: ${project.names}` : action}>
         <img
           src={project.cover}
-          alt={project.names}
+          alt={project.names || categoryOf(project)}
           loading="lazy"
           style={{ objectPosition: project.position }}
           onError={(event) => {
@@ -312,7 +312,7 @@ function ProjectCard({
         </span>
         <span className="project-details">
           <span className="project-category">{categoryOf(project)}</span>
-          <span className="project-name">{project.names}</span>
+          {project.names && <span className="project-name">{project.names}</span>}
           {meta && <span className="project-meta">{meta}</span>}
         </span>
       </button>
