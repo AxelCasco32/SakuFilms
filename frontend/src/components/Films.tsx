@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useAllFilms, resolveImg, type Film } from '../hooks/useFilms'
 
 type Filter = 'Todos' | 'Wedding Films' | 'Trailers' | 'Wedding Photography'
 
@@ -17,11 +18,13 @@ type PortfolioProject = {
 }
 
 /* ───────────────────────── CONTENIDO ─────────────────────────
-   Editá acá nombres, lugar y año de cada proyecto.
-   Si location o year quedan vacíos, simplemente no se muestran. */
+   Los proyectos se cargan desde el panel admin (/admin).
+   La lista de abajo es solo de respaldo: se muestra mientras carga
+   o si el backend no tiene proyectos o no responde. */
 
 // Cloudinary: pide la imagen ya optimizada (formato y calidad automáticos, ancho limitado)
-const cld = (url: string, width: number) => url.replace('/upload/', `/upload/f_auto,q_auto,w_${width}/`)
+const cld = (url: string, width: number) =>
+  url.includes('res.cloudinary.com') ? url.replace('/upload/', `/upload/f_auto,q_auto,w_${width}/`) : url
 
 const youtubeEmbed = (id: string) => `https://www.youtube.com/embed/${id}?autoplay=1&rel=0`
 const youtubeThumb = (id: string) => `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`
@@ -56,7 +59,7 @@ const GALLERY_PHOTOS = [
   'https://res.cloudinary.com/ex91suxd/image/upload/v1791747577/27.jpg',
 ]
 
-const PROJECTS: PortfolioProject[] = [
+const FALLBACK_PROJECTS: PortfolioProject[] = [
   // Wedding Photography: una galería con las 27 fotos
   {
     id: 'galeria-bodas',
@@ -90,6 +93,28 @@ const PROJECTS: PortfolioProject[] = [
   //   categories: ['Wedding Films'], type: 'video',
   //   cover: youtubeThumb('ID_DEL_VIDEO'), videoUrl: youtubeEmbed('ID_DEL_VIDEO') },
 ]
+
+const youtubeId = (url = '') =>
+  url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/))([\w-]{11})/)?.[1] ?? null
+
+const FILTER_CATEGORIES: Exclude<Filter, 'Todos'>[] = ['Wedding Films', 'Trailers', 'Wedding Photography']
+
+// Convierte un proyecto del backend al formato de la galería
+function fromBackend(film: Film): PortfolioProject {
+  const isPhoto = film.type === 'photography' || film.categories.includes('Wedding Photography')
+  const ytId = youtubeId(film.videoUrl)
+  return {
+    id: String(film._id ?? film.id),
+    names: film.couple,
+    location: film.location,
+    year: film.year,
+    categories: film.categories.filter((c): c is Exclude<Filter, 'Todos'> => FILTER_CATEGORIES.includes(c as never)),
+    type: isPhoto ? 'photography' : 'video',
+    cover: cld(resolveImg(film.img), 1600),
+    images: (film.images ?? []).map((url) => cld(resolveImg(url), 2000)),
+    videoUrl: ytId ? youtubeEmbed(ytId) : undefined,
+  }
+}
 
 // Si un proyecto no define "size", se reparte en este patrón (filas de 7+5 / 5+7 columnas).
 const SIZE_PATTERN: NonNullable<PortfolioProject['size']>[] = ['feature', 'landscape', 'portrait', 'feature']
@@ -303,13 +328,19 @@ export default function Films() {
   const [activeFilter, setActiveFilter] = useState<Filter>('Todos')
   const [videoProject, setVideoProject] = useState<PortfolioProject | null>(null)
   const [photoProject, setPhotoProject] = useState<PortfolioProject | null>(null)
+  const { films } = useAllFilms()
+
+  const projects = useMemo(
+    () => (films && films.length > 0 ? films.map(fromBackend) : FALLBACK_PROJECTS),
+    [films],
+  )
 
   const filteredProjects = useMemo(
     () =>
-      (activeFilter === 'Todos' ? PROJECTS : PROJECTS.filter((project) => project.categories.includes(activeFilter))).map(
+      (activeFilter === 'Todos' ? projects : projects.filter((project) => project.categories.includes(activeFilter))).map(
         (project, i) => ({ ...project, size: project.size || SIZE_PATTERN[i % SIZE_PATTERN.length] }),
       ),
-    [activeFilter],
+    [activeFilter, projects],
   )
 
   const openProject = (project: PortfolioProject) => {

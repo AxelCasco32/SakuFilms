@@ -12,6 +12,8 @@ export type Film = {
   type?: 'video' | 'photography'
   year: string
   img: string
+  // Solo Wedding Photography: fotos de la galería
+  images?: string[]
   videoUrl?: string
   position?: number
 }
@@ -33,26 +35,53 @@ export function resolveImg(img: string) {
   return img.startsWith('/uploads') ? `${API_URL}${img}` : img
 }
 
+// Un solo pedido al backend, compartido entre el carousel del home y la sección Films
+let cache: Film[] | null = null
+let pending: Promise<Film[] | null> | null = null
+
+function loadFilms(): Promise<Film[] | null> {
+  if (cache) return Promise.resolve(cache)
+  if (!pending) {
+    pending = fetch(`${API_URL}/api/films`)
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((data: Film[]) => (cache = data))
+      .catch(() => {
+        pending = null // permite reintentar en el próximo montaje
+        return null
+      })
+  }
+  return pending
+}
+
 /**
- * Trae los films desde el backend. Un mismo film cargado en el panel admin
- * aparece acá para el carousel del home Y para la grilla categorizada de Films,
- * porque ambos componentes usan este mismo hook / la misma fuente de datos.
+ * Todos los proyectos cargados en el panel admin (videos y fotografía), ordenados por "position".
+ * films es null mientras carga o si el backend no responde.
  */
-export function useFilms() {
-  const [films, setFilms] = useState<Film[]>(FALLBACK_FILMS)
-  const [loaded, setLoaded] = useState(false)
+export function useAllFilms() {
+  const [films, setFilms] = useState<Film[] | null>(cache)
+  const [loaded, setLoaded] = useState(cache !== null)
 
   useEffect(() => {
-    fetch(`${API_URL}/api/films`)
-      .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then((data: Film[]) => {
-        // El carousel solo muestra videos; Wedding Photography se ve en la galería
-        const videos = data.filter((film) => film.type !== 'photography')
-        if (videos.length > 0) setFilms(videos)
-      })
-      .catch(() => { /* sin conexión al backend: se mantienen los placeholders */ })
-      .finally(() => setLoaded(true))
+    let alive = true
+    loadFilms().then((data) => {
+      if (!alive) return
+      setFilms(data)
+      setLoaded(true)
+    })
+    return () => {
+      alive = false
+    }
   }, [])
 
   return { films, loaded }
+}
+
+/**
+ * Films del carousel del home: solo videos (Wedding Photography se ve en la sección Films).
+ * Si el backend no tiene videos o no responde, se muestran los placeholders.
+ */
+export function useFilms() {
+  const { films: all, loaded } = useAllFilms()
+  const videos = (all ?? []).filter((film) => film.type !== 'photography')
+  return { films: videos.length > 0 ? videos : FALLBACK_FILMS, loaded }
 }
