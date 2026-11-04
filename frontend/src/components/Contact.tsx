@@ -3,9 +3,6 @@ import { useScrollReveal } from '../hooks/useScrollReveal'
 import { useSettings } from '../hooks/useSettings'
 
 const COVERAGE_OPTIONS = [
-  'Wedding Film completo',
-  'Trailer',
-  'Highlights',
   'Fotografía',
   'Fotografía + Film',
   'Destination Wedding',
