@@ -112,6 +112,12 @@ Para cargar las fotos iniciales del carrusel de "Nosotros" (el comando no duplic
 npm run seed:carousel
 ```
 
+Para cargar la galería de Wedding Photography con sus fotos de Cloudinary (si ya existe, solo agrega las fotos que falten):
+
+```bash
+npm run seed:gallery
+```
+
 ## 7. Panel admin
 
 Se abre en **http://localhost:4000/admin**, con el usuario de `ADMIN_USER` y la contraseña del paso 4. La sesión dura 12 horas.
@@ -175,6 +181,7 @@ backend/
     db.js                  conexión a MongoDB
     create-admin.js        genera el hash de la contraseña del admin
     seedCarousel.js        carga las fotos iniciales del carrusel de "Nosotros"
+    seedGallery.js         carga la galería de Wedding Photography
     middleware/
       auth.js              valida el token JWT
       asyncHandler.js      pasa los errores de las rutas async al manejador de errores

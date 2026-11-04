@@ -96,6 +96,7 @@ Los archivos `.env` no se suben al repositorio. Hay que usar como plantilla los 
 | backend | `npm start` | Servidor para producción |
 | backend | `npm run create-admin` | Genera el hash de la contraseña del admin |
 | backend | `npm run seed:carousel` | Carga en la base las fotos iniciales del carrusel de "Nosotros" (no duplica) |
+| backend | `npm run seed:gallery` | Carga la galería de Wedding Photography (26 fotos; no duplica) |
 | frontend | `npm run dev` | Servidor de desarrollo de Vite |
 | frontend | `npm run build` | Build de producción en `frontend/dist/` |
 | frontend | `npm run preview` | Sirve el build localmente |
