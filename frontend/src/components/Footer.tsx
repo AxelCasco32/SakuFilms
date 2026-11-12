@@ -62,7 +62,7 @@ export default function Footer() {
               marginBottom: '8px',
             }}
           >
-            Wedding Films &amp; Audiovisual
+            Wedding Films &amp; Photography
           </p>
           <p
             style={{

@@ -58,7 +58,7 @@ export default function Hero() {
             animation: 'heroItem 1.1s cubic-bezier(0.22,1,0.36,1) 0.5s both',
           }}
         >
-          Wedding Films &amp; Audiovisual
+          Wedding Films &amp; Photography
         </div>
 
         <div
