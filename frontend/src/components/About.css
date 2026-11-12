@@ -394,8 +394,8 @@
 .about .carousel-card {
   position: relative;
   flex: 0 0 auto;
-  width: clamp(250px, 24vw, 360px);
-  margin: 0 18px 0 0;
+  width: clamp(180px, 17vw, 260px);
+  margin: 0 14px 0 0;
   overflow: hidden;
 }
 
@@ -419,7 +419,7 @@
   bottom: 12px;
   color: white;
   font-family: "Cormorant Garamond", serif;
-  font-size: 14px;
+  font-size: 13px;
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
 }
 
@@ -546,8 +546,8 @@
   .about .carousel-heading { margin: 0 20px 24px; }
 
   .about .carousel-card {
-    width: 76vw;
-    margin-right: 12px;
+    width: 54vw;
+    margin-right: 10px;
   }
 }
 
