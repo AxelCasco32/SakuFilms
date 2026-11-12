@@ -1,5 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Manrope:wght@300;400;500&display=swap");
-
 .about {
   overflow: hidden;
   color: #292521;
@@ -155,8 +153,7 @@
 .about .word-reveal .word {
   display: inline-block;
   opacity: 0;
-  filter: blur(4px);
-  transition: opacity 400ms ease, filter 400ms ease;
+  transition: opacity 400ms ease;
 }
 
 .about .word-reveal.is-visible {
@@ -167,7 +164,6 @@
 
 .about .word-reveal.is-visible .word {
   opacity: 1;
-  filter: blur(0);
 }
 
 .about .manifesto-narrative .word-reveal:nth-child(2) { transition-delay: 50ms; }
