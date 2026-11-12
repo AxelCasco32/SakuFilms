@@ -443,15 +443,15 @@ export default function About() {
                 <span>Erica &amp; Matías</span>
               </div>
             </Reveal>
+            <Reveal delay={300} className="quote-wrap">
+              <div className="quote-mark">“</div>
+              <blockquote>
+                Porque no queremos hacer una película sobre una boda. Queremos
+                contar la historia de quienes la están viviendo.
+              </blockquote>
+              <div className="quote-rule" />
+            </Reveal>
           </div>
-          <Reveal delay={300} className="quote-wrap">
-            <div className="quote-mark">“</div>
-            <blockquote>
-              Porque no queremos hacer una película sobre una boda. Queremos
-              contar la historia de quienes la están viviendo.
-            </blockquote>
-            <div className="quote-rule" />
-          </Reveal>
         </div>
 
         <div className="carousel-heading">

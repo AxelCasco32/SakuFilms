@@ -244,17 +244,22 @@
 }
 
 .about .founders {
-  padding: clamp(72px, 6vw, 110px) 0 4vw;
+  padding: 32px 0 4vw;
   background: #e8e1d8;
   color: #292521;
 }
 
 .about .founders-layout {
+  /* Tamaño de la foto según el alto de la pantalla, para que texto, foto y cita
+     entren juntos sin scroll (descuenta menú, cita y espacios) */
+  --portrait-size: clamp(200px, calc(100vh - 400px), 440px);
+
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
+  grid-template-columns: minmax(0, 1.15fr) minmax(260px, 0.85fr);
   gap: 0 5vw;
   /* Texto y foto centrados a la misma altura */
   align-items: center;
+  min-height: calc(100vh - 72px);
   max-width: 1240px;
   margin: 0 auto;
   padding: 0 6vw 3.5vw;
@@ -265,7 +270,7 @@
 }
 
 .about .section-title {
-  font-size: clamp(48px, 4.4vw, 72px);
+  font-size: clamp(44px, 4vw, 66px);
 }
 
 .about .founders .body-copy {
@@ -275,7 +280,7 @@
 
 .about .founders-body {
   max-width: 640px !important;
-  margin-top: 36px;
+  margin-top: 26px;
   columns: 2;
   column-gap: 46px;
 }
@@ -295,24 +300,23 @@
   color: #91675f;
 }
 
-/* Cita: fila propia debajo del texto y la foto, centrada */
+/* Cita debajo de la foto, del mismo ancho */
 .about .quote-wrap {
   position: relative;
-  grid-column: 1 / -1;
-  max-width: 760px;
-  margin: 64px auto 0;
-  padding: 40px 0 0;
-  text-align: center;
+  /* Al menos 300px para que la cita no se parta en muchas líneas si la foto queda chica */
+  width: max(var(--portrait-size), 300px);
+  max-width: 100%;
+  margin-top: 18px;
+  padding: 26px 0 0;
 }
 
 .about .quote-mark {
   position: absolute;
-  left: 50%;
+  left: 0;
   top: -6px;
-  transform: translateX(-50%);
   color: #b3857b;
   font-family: "Cormorant Garamond", serif;
-  font-size: 58px;
+  font-size: 46px;
   line-height: 1;
 }
 
@@ -321,7 +325,7 @@
   padding: 0;
   border: 0;
   font-family: "Cormorant Garamond", serif;
-  font-size: clamp(22px, 2vw, 30px);
+  font-size: clamp(19px, 1.6vw, 24px);
   font-style: italic;
   line-height: 1.2;
   letter-spacing: -0.02em;
@@ -330,15 +334,14 @@
 .about .quote-rule {
   width: 54px;
   height: 1px;
-  margin: 28px auto 0;
+  margin-top: 16px;
   background: #b3857b;
 }
 
 .about .portrait-wrap {
   position: relative;
-  width: 100%;
-  max-width: 460px;
-  justify-self: end;
+  width: var(--portrait-size);
+  max-width: 100%;
 }
 
 /* Retrato nítido: sin filtros ni máscara */
@@ -356,7 +359,7 @@
   position: relative;
   display: flex;
   justify-content: space-between;
-  margin-top: 18px;
+  margin-top: 10px;
   color: #756b63;
   font-size: 9px;
   letter-spacing: 0.15em;
@@ -529,6 +532,7 @@
     display: flex;
     flex-direction: column;
     gap: 52px;
+    min-height: auto;
     padding: 0 20px 40px;
   }
 
@@ -543,11 +547,12 @@
   }
 
   .about .quote-wrap {
-    margin-top: 8px;
-    padding: 38px 0 0;
+    width: auto;
+    margin-top: 24px;
+    padding: 34px 0 0;
   }
 
-  .about blockquote { font-size: 24px; }
+  .about blockquote { font-size: 22px; }
 
   .about .portrait-wrap {
     width: 100%;
