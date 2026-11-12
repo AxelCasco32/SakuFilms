@@ -83,6 +83,7 @@ const toPhoto = (rawUrl: string, destination = ""): Photo => {
 
 const fallbackPhotos: Photo[] = carouselUrls.map((url) => toPhoto(url));
 
+// La animación arranca apenas el bloque asoma en pantalla (rootMargin la adelanta un poco)
 function useVisible<T extends HTMLElement>(threshold: number) {
   const ref = useRef<T>(null);
 
@@ -96,7 +97,7 @@ function useVisible<T extends HTMLElement>(threshold: number) {
           observer.disconnect();
         }
       },
-      { threshold },
+      { threshold, rootMargin: "0px 0px 10% 0px" },
     );
     observer.observe(node);
     return () => observer.disconnect();
@@ -114,7 +115,7 @@ function Reveal({
   delay?: number;
   className?: string;
 }) {
-  const ref = useVisible<HTMLDivElement>(0.14);
+  const ref = useVisible<HTMLDivElement>(0.05);
   return (
     <div
       ref={ref}
@@ -142,7 +143,7 @@ function WordReveal({
   children: string;
   className?: string;
 }) {
-  const ref = useVisible<HTMLDivElement>(0.25);
+  const ref = useVisible<HTMLDivElement>(0.05);
   return (
     <div ref={ref} className={`word-reveal ${className}`}>
       {children.split(" ").map((word, index) => (
