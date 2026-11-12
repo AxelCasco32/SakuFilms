@@ -402,7 +402,7 @@ export default function About() {
             <div className="body-copy founders-body">
               <Reveal delay={180}>
                 <p>
-                  Somos Erica y Matías, una dupla creativa especializada en
+                  Somos Erica y Matías, una pareja creativa especializada en
                   bodas. Trabajamos juntos en cada proyecto, desde la mirada
                   inicial hasta la edición final, construyendo una narrativa
                   propia.
@@ -410,7 +410,7 @@ export default function About() {
               </Reveal>
               <Reveal delay={280}>
                 <p>
-                  Nuestra experiencia trabajando en edición de bodas para
+                  Nuestra experiencia trabajando en mas de 300 bodas para
                   clientes internacionales nos permitió desarrollar una mirada
                   narrativa y un criterio audiovisual que llevamos a cada
                   historia.
