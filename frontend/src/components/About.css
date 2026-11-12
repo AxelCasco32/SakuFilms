@@ -24,7 +24,8 @@
   display: grid;
   grid-template-columns: 50% 50%;
   align-items: center;
-  padding: 6.5vw 6vw 7vw;
+  /* Arriba deja lugar para el menú fijo (72px) */
+  padding: 84px 6vw clamp(20px, 2.5vw, 48px);
   color: #292521;
 }
 
@@ -126,12 +127,18 @@
   max-width: 620px;
 }
 
+@media (min-width: 761px) {
+  .about .manifesto .display-title {
+    font-size: clamp(56px, 5.6vw, 96px);
+  }
+}
+
 .about .manifesto-narrative {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
   max-width: 640px;
-  margin-top: 54px;
+  margin-top: 28px;
   color: #4a433e;
   font-size: clamp(19px, 1.5vw, 22px);
   font-weight: 500;
@@ -169,8 +176,8 @@
 
 .about .narrative-closing {
   width: 84%;
-  margin-top: 8px;
-  padding-top: 22px;
+  margin-top: 0;
+  padding-top: 14px;
   border-top: 1px solid rgba(140, 101, 95, 0.28);
   color: #7c514b;
   font-family: "Cormorant Garamond", serif;
@@ -227,9 +234,9 @@
   margin-top: 54px;
   max-width: 590px;
   color: #554e48;
-  font-size: 13px;
-  font-weight: 300;
-  line-height: 1.9;
+  font-size: clamp(15px, 1.1vw, 17px);
+  font-weight: 400;
+  line-height: 1.8;
 }
 
 .about .body-copy p {
@@ -444,7 +451,7 @@
   .about .manifesto {
     min-height: auto;
     display: block;
-    padding: 70px 20px 72px;
+    padding: 32px 20px;
   }
 
   /* En mobile el bloque 1 no lleva imagen de fondo */
@@ -478,14 +485,14 @@
   .about .eyebrow { margin-bottom: 22px; }
 
   .about .display-title {
-    font-size: clamp(58px, 17vw, 72px);
+    font-size: clamp(50px, 14vw, 64px);
     line-height: 0.93;
   }
 
   .about .manifesto-narrative {
-    gap: 24px;
+    gap: 14px;
     max-width: none;
-    margin-top: 40px;
+    margin-top: 24px;
     font-size: 18px;
     line-height: 1.6;
   }
@@ -498,8 +505,8 @@
 
   .about .body-copy {
     margin-top: 42px;
-    font-size: 12px;
-    line-height: 1.85;
+    font-size: 15px;
+    line-height: 1.75;
   }
 
   .about .body-copy p { margin-bottom: 18px; }
