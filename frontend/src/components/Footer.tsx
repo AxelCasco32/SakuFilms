@@ -1,3 +1,5 @@
+import { useSettings } from '../hooks/useSettings'
+
 const NAV_LINKS = [
   { label: 'Inicio', href: '#inicio' },
   { label: 'Nosotros', href: '#nosotros' },
@@ -7,6 +9,14 @@ const NAV_LINKS = [
 ]
 
 export default function Footer() {
+  // Se cargan desde el panel admin; los vacíos no se muestran
+  const settings = useSettings()
+  const contactLinks = [
+    { label: 'Instagram', href: settings.instagram },
+    { label: 'WhatsApp', href: settings.whatsapp ? `https://wa.me/${settings.whatsapp}` : '' },
+    { label: settings.email, href: settings.email ? `mailto:${settings.email}` : '' },
+  ].filter((s) => s.href)
+
   return (
     <footer
       style={{
@@ -129,14 +139,12 @@ export default function Footer() {
             Contacto
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            {[
-              { label: 'Instagram', href: '#' },
-              { label: 'WhatsApp', href: '#' },
-              { label: 'hola@sakufilms.com', href: 'mailto:hola@sakufilms.com' },
-            ].map((s) => (
+            {contactLinks.map((s) => (
               <a
-                key={s.label}
+                key={s.href}
                 href={s.href}
+                target={s.href.startsWith('http') ? '_blank' : undefined}
+                rel={s.href.startsWith('http') ? 'noopener noreferrer' : undefined}
                 style={{
                   fontFamily: "'Manrope', sans-serif",
                   fontWeight: 300,
