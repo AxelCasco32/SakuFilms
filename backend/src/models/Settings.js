@@ -13,6 +13,8 @@ const settingsSchema = new mongoose.Schema(
     tiktok: { type: String, default: '' },
     youtube: { type: String, default: '' },
     vimeo: { type: String, default: '' },
+    // Correo de contacto que se muestra en el sitio (sección Contacto y pie de página)
+    email: { type: String, default: 'hola@sakufilms.com' },
     // Fondo de la sección Destination Weddings (vacío = imagen por defecto del sitio)
     destinationImage: { type: String, default: '' },
   },

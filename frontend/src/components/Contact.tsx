@@ -59,7 +59,7 @@ export default function Contact() {
     { label: 'TikTok', href: settings.tiktok },
     { label: 'YouTube', href: settings.youtube },
     { label: 'Vimeo', href: settings.vimeo },
-    { label: 'Email', href: 'mailto:hola@sakufilms.com' },
+    { label: 'Email', href: settings.email ? `mailto:${settings.email}` : '' },
   ].filter((s) => s.href)
 
   const inputStyle: React.CSSProperties = {

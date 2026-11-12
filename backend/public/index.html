@@ -323,7 +323,7 @@
       <button data-view="contacts"><svg><use href="#i-inbox"/></svg><span class="label">Consultas</span><span class="badge" id="contactsBadge" hidden></span></button>
       <button data-view="carousel"><svg><use href="#i-images"/></svg><span class="label">Carrusel Nosotros</span></button>
       <button data-view="appearance"><svg><use href="#i-brush"/></svg><span class="label">Apariencia</span></button>
-      <button data-view="settings"><svg><use href="#i-gear"/></svg><span class="label">WhatsApp y redes</span></button>
+      <button data-view="settings"><svg><use href="#i-gear"/></svg><span class="label">Contacto y redes</span></button>
     </nav>
     <div class="sidebar-footer">
       <a class="btn btn-ghost btn-sm" id="siteLink" target="_blank" rel="noopener"><svg width="16" height="16"><use href="#i-link"/></svg><span class="label">Ver sitio</span></a>
@@ -433,7 +433,7 @@
       <form onsubmit="event.preventDefault(); saveSettings()">
         <div class="page-head">
           <div>
-            <h1 class="serif">WhatsApp y redes</h1>
+            <h1 class="serif">Contacto y redes</h1>
             <p>Los campos que dejes vacíos no se muestran en el sitio.</p>
           </div>
         </div>
@@ -449,6 +449,13 @@
               <input id="set_whatsappMessage" maxlength="300" placeholder="Hola! Quiero consultar por una cobertura de boda." oninput="updateWaTest()" />
             </label>
           </div>
+        </div>
+        <div class="card">
+          <h2>Email de contacto</h2>
+          <p class="desc">Se muestra en la sección de contacto y en el pie de página. Si lo dejás vacío, no se muestra.</p>
+          <label class="field" style="margin-bottom:0"><span>Email</span>
+            <div class="input-icon"><svg><use href="#i-inbox"/></svg><input id="set_email" type="email" placeholder="hola@sakufilms.com" /></div>
+          </label>
         </div>
         <div class="card">
           <h2>Redes sociales</h2>
@@ -561,7 +568,7 @@ const API = '/api'
 const PHOTO = 'Wedding Photography'
 // Misma imagen que usa el sitio cuando no se cargó ninguna (frontend/src/components/Destination.tsx)
 const DEFAULT_DEST_IMAGE = 'https://images.unsplash.com/photo-1532712938310-34cb3982ef74?w=1600&h=900&fit=crop&auto=format'
-const SETTINGS_FIELDS = ['whatsapp', 'whatsappMessage', 'instagram', 'facebook', 'tiktok', 'youtube', 'vimeo']
+const SETTINGS_FIELDS = ['whatsapp', 'whatsappMessage', 'email', 'instagram', 'facebook', 'tiktok', 'youtube', 'vimeo']
 
 let token = localStorage.getItem('saku_token') || ''
 let categories = []

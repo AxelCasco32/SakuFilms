@@ -41,7 +41,7 @@ async function saveFile(file) {
 }
 
 const router = Router()
-const FIELDS = ['whatsapp', 'whatsappMessage', 'instagram', 'facebook', 'tiktok', 'youtube', 'vimeo', 'destinationImage']
+const FIELDS = ['whatsapp', 'whatsappMessage', 'instagram', 'facebook', 'tiktok', 'youtube', 'vimeo', 'email', 'destinationImage']
 
 const getSettings = () =>
   Settings.findOneAndUpdate(
@@ -86,8 +86,15 @@ router.put('/', requireAuth, async (req, res) => {
       youtube: cleanUrl(b.youtube),
       vimeo: cleanUrl(b.vimeo),
     }
-    // Solo se toca si viene en el pedido, así no se borra por accidente
+    // Solo se tocan si vienen en el pedido, así no se borran por accidente
     if (b.destinationImage !== undefined) update.destinationImage = cleanImage(b.destinationImage)
+    if (b.email !== undefined) {
+      const email = String(b.email).trim().toLowerCase()
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return res.status(400).json({ error: 'El email de contacto no es válido' })
+      }
+      update.email = email
+    }
 
     const s = await Settings.findOneAndUpdate({ key: 'main' }, update, {
       upsert: true,

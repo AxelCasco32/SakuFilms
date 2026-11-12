@@ -8,6 +8,7 @@ export type Settings = {
   tiktok: string
   youtube: string
   vimeo: string
+  email: string
   destinationImage: string
 }
 
@@ -19,6 +20,7 @@ const EMPTY: Settings = {
   tiktok: '',
   youtube: '',
   vimeo: '',
+  email: '',
   destinationImage: '',
 }
 
