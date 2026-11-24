@@ -106,6 +106,8 @@ Los archivos `.env` no se suben al repositorio. Hay que usar como plantilla los 
 
 El sitio está publicado así:
 
+> Para mudar el backend a un servidor gratuito de Oracle Cloud, seguí [`deploy/oracle/README.md`](deploy/oracle/README.md).
+
 | Parte | Plataforma | Dominio | Configuración |
 |---|---|---|---|
 | Frontend | Vercel | `sakufilms.com` | Root Directory `frontend` · Build `npm run build` · Output `dist` · variable `VITE_API_URL` |
